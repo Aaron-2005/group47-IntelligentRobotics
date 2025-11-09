@@ -1,12 +1,34 @@
 # detection.py
 # Handles survivor detection using thermal / vision sensors
-
+from controller import Camera 
+import numpy as np
+import cv2
 class Detection:
     def __init__(self, robot):
         self.robot = robot
+        self.camera = self.robot.getDevice("rgb_camera")
+        timestep = int(self.robot.getBasicTimeStep())
+        self.camera.enable(timestep) #Updates cameras every interval(Creates a refresh loop)
         print("Detection module initialized")
 
     def detect(self):
-        # Placeholder detection logic
-        # Later: analyze camera/thermal sensor data
-        return []
+       image = self.camera.getImage()
+       if image is None:
+           print("No camera image yet")
+           return []
+       width = self.camera.getWidth()
+       height = self.camera.getHeight()
+        
+       # Reorganises the massive 1 byte buffer to a structured 3d so that it can be understood
+       image_array = np.frombuffer(image, np.uint8).reshape((height, width, 4))
+        
+       # Convert BGRA → BGR for OpenCV as OPENCV doesn't need the alpha(transparency)
+       frame = cv2.cvtColor(image_array, cv2.COLOR_BGRA2BGR)
+        
+       # Opens window to show image
+       cv2.imshow("TurtleBot RGB Camera", frame)
+       cv2.waitKey(1)
+       
+       # Placeholder: no detection logic yet
+       return []
+    

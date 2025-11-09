@@ -27,4 +27,20 @@ TurtleBot3Burger {
   translation 4.5464846470943954e-10 -5.214934709649004e-10 -0.00024770134876377775
   rotation -0.002119545665036137 -0.9999977537491606 4.775707159316458e-06 0.00464084674970576
   controller "main_controller"
+   extensionSlot [ 
+    Pose {
+    translation 0.06 0 0.18
+    rotation 0 1 0 0
+    children [
+      Camera {
+        name        "rgb_camera"
+        width       640
+        height      480
+        fieldOfView 1.047
+        near        0.01
+        far         20.0
+        }
+      ]
+    }
+  ]
 }
