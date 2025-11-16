@@ -26,7 +26,7 @@ class Navigation:
         self.left_motor.setPosition(float('inf'))
         self.right_motor.setPosition(float('inf'))
         self.left_motor.setVelocity(0.0)
-        self.left_motor.setVelocity(0.0)
+        self.right_motor.setVelocity(0.0)
         
         # Get encoders
         self.left_sensor = robot.getDevice('left wheel sensor')
@@ -63,9 +63,26 @@ class Navigation:
         self.c = xs *yg - xg * ys
         self.mline_tolerance = 0.05 #Parameter for how far from line
         
+        # Normalise M-line coefficients for better distance calculation
+        norm = math.sqrt(self.a**2 + self.b**2)
+        if norm > 0:
+            self.a /= norm
+            self.b /= norm
+            self.c /= norm
+        
         self.state = "GO_TO_GOAL"
         self.hit_point = None
-        self.obs_threshold = 0.25
+        self.obs_threshold = 0.2
+        self.clearance_threshold = 0.25
+        
+        # Wall following parameters
+        self.follow_side = None
+        self.target_distance = 0.15 # Distance from wall
+        self.wall_follow_speed = 2.0
+        
+        # M-line tracking
+        self.on_mline_count = 0
+        self.on_mline_required = 5
         
         print("init complete")
         
@@ -144,32 +161,81 @@ class Navigation:
             return True
         else:
             return False
-        
-    def wall_follow(self):
-        # Get lidar distance values from full 360
+    
+    def path_clear(self):
+        # Get lidar distances from full 360
         ranges = self.lidar.getRangeImage()
-        midpoint = int(self.lidar_width / 2)
         
-        # Split ranges into halves
-        left_range = []
-        for i in range(0, midpoint):
-            left_range.append(ranges[i])
+        # Get central region in front of robot
+        center_start = self.lidar_width // 3
+        center_end = 2 * self.lidar_width // 3
+        center_ranges = ranges[center_start:center_end]
         
-        right_range = []
-        for i in range(midpoint, self.lidar_width):
-            right_range.append(ranges[i])
-            
-        # Find closest object on each side
-        closest_left = min(left_range)
-        closest_right = min(right_range)
+        # Return true if closest obstacle ahead is further than clearance threshold
+        return min(center_ranges) > self.clearance_threshold
+       
+    def wall_follow(self):
+        # Get lidar distances from full 360
+        ranges = self.lidar.getRangeImage()
+        n = self.lidar_width
         
-        # Decide where to turn 
-        if closest_left < closest_right:
-            # Obstacle is closer on left so turn right 
-            return 3.0, 1.5
+        # Split ranges into regions
+        left_range = ranges[n // 4 : n // 2]
+        right_range = ranges[n // 2 : 3 * n // 4]
+        front_range = ranges[2 * n // 5 : 3 * n // 5]
+        
+        # Find closest object in each region
+        if left_range:
+            closest_left = min(left_range)
         else:
-            # Obstacle is closer on right so turn left
-            return 1.5, 3.0
+            closest_left = self.lidar_max
+        if right_range:
+            closest_right = min(right_range)
+        else:
+            closest_right = self.lidar_max
+        if front_range:
+            closest_front = min(front_range)
+        else:
+            closest_front = self.lidar_max
+        
+        # Decide which wall to follow
+        if self.follow_side is None or self.hit_point == (self.x, self.y):
+            if closest_left < closest_right:
+                self.follow_side = "LEFT"
+            else:
+                self.follow_side = "RIGHT"
+        
+        # Set wall follow speed
+        base_speed = self.wall_follow_speed
+        
+        # Calculate wheel speeds based on wall
+        if self.follow_side == "RIGHT":
+            # Follow right wall
+            error = closest_right - self.target_distance
+            turn_correction = error * 3.0
+            
+            if closest_front < 0.2:
+                v_left = base_speed
+                v_right = -0.5 * base_speed
+            else:
+                v_left = base_speed + turn_correction
+                v_right = base_speed - turn_correction
+        else:
+            # Follow left wall
+            error = closest_left - self.target_distance
+            turn_correction = error * 3.0
+             
+            if closest_front < 0.2:
+                v_left = -0.5 * base_speed
+                v_right = base_speed
+            else:
+                v_left = base_speed - turn_correction
+                v_right = base_speed + turn_correction
+         
+        v_left = max(-self.max_speed, min(self.max_speed, v_left))
+        v_right = max(-self.max_speed, min(self.max_speed, v_right))
+         
+        return v_left, v_right
      
     def distance_to_goal(self):
         goal_x, goal_y = self.goal
@@ -187,6 +253,7 @@ class Navigation:
             if self.obstacle_detected():
                 self.state = "WALL_FOLLOW"
                 self.hit_point = (self.x, self.y)
+                self.follow_side = None
                 print("Hit obstacle -> WALL_FOLLOW")
                 v_left, v_right = self.wall_follow()
             else:
@@ -203,10 +270,22 @@ class Navigation:
             else:
                 distance_hit_to_goal = float('inf')
                 
-            # Check is robot is on M-line and closer to the goal
-            if self.on_mline() and self.distance_to_goal() < distance_hit_to_goal:
+            if self.on_mline():
+                self.on_mline_count += 1
+            else:
+                self.on_mline_count = 0
+                
+            # Switch back to GO_TO_GOAL if:
+            # Path ahead is clear
+            # On M-line
+            # Closer to goal than hit point
+            current_distance = self.distance_to_goal()
+            
+            if self.on_mline_count >= self.on_mline_required and current_distance < distance_hit_to_goal and self.path_clear():
                 print("Back on M-line -> GO_TO_GOAL")
                 self.state = "GO_TO_GOAL"
+                self.follow_side = None
+                self.on_mline_count = 0
                 v_left, v_right, rpho = self.goto_position(*self.goal)
             else:
                 # Continue to follow obstacle
