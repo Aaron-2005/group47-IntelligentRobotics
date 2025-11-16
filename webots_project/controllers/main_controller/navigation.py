@@ -52,7 +52,7 @@ class Navigation:
         self.max_speed = 6.28
         
         # Set goal and start position
-        self.goal = (1, 0)
+        self.goal = (1.2, 0)
         self.start = (0.0, 0.0)
         
         # M-line equation
@@ -61,7 +61,7 @@ class Navigation:
         self.a = ys - yg
         self.b = xg - xs
         self.c = xs *yg - xg * ys
-        self.mline_tolerance = 0.15 #Parameter for how far from line
+        self.mline_tolerance = 0.05 #Parameter for how far from line
         
         # Normalise M-line coefficients for better distance calculation
         norm = math.sqrt(self.a**2 + self.b**2)
@@ -72,8 +72,8 @@ class Navigation:
         
         self.state = "GO_TO_GOAL"
         self.hit_point = None
-        self.obs_threshold = 0.2
-        self.clearance_threshold = 0.25
+        self.obs_threshold = 0.25
+        self.clearance_threshold = 0.35
         
         # Wall following parameters
         self.follow_side = None
@@ -82,7 +82,7 @@ class Navigation:
         
         # M-line tracking
         self.on_mline_count = 0
-        self.on_mline_required = 20
+        self.on_mline_required = 2
         
         print("init complete")
         
@@ -144,36 +144,35 @@ class Navigation:
         # Get lidar distance values
         ranges = self.lidar.getRangeImage()
         
-        dx = self.goal[0] - self.x
-        dy = self.goal[1] - self.y
-        angle = math.atan2(dy, dx) - self.theta
-        angle = (angle + math.pi) % (2*math.pi) - math.pi
+        # Get central region
+        one_third = int(self.lidar_width / 3)
+        two_third = int(2 * self.lidar_width / 3)
         
-        # Convert angle to lidar index
-        i = int((angle + math.pi) / (2*math.pi) * self.lidar_width)
-        i = max(0, min(self.lidar_width - 1, i))
+        # Get lidar values from this region
+        center_ranges = []
+        for i in range(one_third, two_third):
+            center_ranges.append(ranges[i])
+            
+        # Find the closest detected object in the central region
+        closest_distance = min(center_ranges)
         
-        return ranges[i] < self.distance_to_goal()
+        # If it's closer than the threshold, its an obstacle
+        if closest_distance < self.obs_threshold:
+            return True
+        else:
+            return False
     
     def path_clear(self):
         # Get lidar distances from full 360
-        ranges = self.lidar.getRangeImage()
-        goal_x, goal_y = self.goal
+        ranges = self.lidar.getRangeImage() 
         
-        dx = goal_x - self.x
-        dy = goal_y - self.y
-        goal_distance = math.sqrt(dx*dx + dy*dy)
+        # Get central region in front of robot
+        center_start = self.lidar_width // 3
+        center_end = 2 * self.lidar_width // 3
+        center_ranges = ranges[center_start:center_end]
         
-        # Angle to goal relative to orientation
-        angle_to_goal = math.atan2(dy, dx) - self.theta
-        angle_to_goal = (angle_to_goal + math.pi) % (2*math.pi) - math.pi
-        
-        # Convert angle to lidar index
-        i = int((angle_to_goal + math.pi) / (2*math.pi) * self.lidar_width)
-        i = max(0, min(self.lidar_width - 1, i))
-        
-        # Return true iflidar ray is obstructed
-        return ranges[i] > goal_distance
+        # Return true if closest obstacle ahead is further than clearance threshold
+        return min(center_ranges) > self.clearance_threshold
        
     def wall_follow(self):
         # Get lidar distances from full 360
