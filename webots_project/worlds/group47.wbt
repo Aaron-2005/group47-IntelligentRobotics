@@ -1,19 +1,59 @@
 #VRML_SIM R2025a utf8
+
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/solids/protos/SolidBox.proto"
 
-WorldInfo { }
-TexturedBackground { }
-TexturedBackgroundLight { }
-RectangleArena { }
-
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.14503257706728628 0.0328391481743416 -0.9888817633753823 2.701041960095545
+  position 1.7022618742287827 1.361913762558974 0.7120667866993194
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+SolidBox {
+  translation 0 0.5 0.5
+  size 0.1 0.1 1
+  appearance PBRAppearance {
+    baseColor 1 0 0
+    baseColorMap ImageTexture {
+      url [
+        "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/default/worlds/textures/tagged_wall.jpg"
+      ]
+    }
+    roughness 0.5
+    metalness 0
+  }
+}
 TurtleBot3Burger {
+  hidden position_0_1 -3.846805618728903e-14
+  hidden position_0_2 -5.016148969798745e-12
+  hidden position_0_3 4.50761121013634e-08
+  hidden position2_0_3 0.00021569118367812377
+  hidden position3_0_3 -4.92063485262292e-07
+  hidden linearVelocity_0 -1.2684390339458584e-07 -4.3762910711593987e-13 -3.47222242017031e-07
+  hidden angularVelocity_0 2.453449966608049e-12 -4.251772790652101e-06 1.0424113788749784e-11
+  hidden linearVelocity_3 -1.4031072395237067e-07 -8.208123862920339e-14 -1.9849127844089304e-07
+  hidden angularVelocity_3 2.4603363457379962e-12 -4.2517725007576645e-06 1.0422425383621778e-11
+  hidden linearVelocity_4 -1.4031229888312625e-07 -7.95077140984587e-14 -1.9849101266362712e-07
+  hidden angularVelocity_4 2.448150932821382e-12 -4.251821291737907e-06 1.0432379433657921e-11
+  hidden rotation_5 0.00020873791009834325 0.9999973760350227 -0.002281304792035658 0.00021569175072367675
+  hidden linearVelocity_5 -1.5384602546871e-08 -8.516242010239316e-13 -5.42336126336612e-07
+  hidden angularVelocity_5 2.1290603714309945e-10 -3.8461506691103e-06 -2.4158872468256328e-12
+  translation 7.124223367488414e-08 -2.3812614360458304e-10 -0.00020953890247817422
+  rotation -4.341252400755927e-06 -0.9999999999905648 -1.5522023114703412e-07 0.004408485802446039
   controller "main_controller"
   extensionSlot [
     HingeJoint {
       jointParameters HingeJointParameters {
+        position 71.35743999999569
         axis 0 0 1
         anchor 0 0 0.18
       }
@@ -23,18 +63,18 @@ TurtleBot3Burger {
         }
       ]
       endPoint Solid {
-        name "camera_mount"
         translation 0 0 0.18
+        rotation 0 0 -1 4.0407836861593465
         children [
           Camera {
             name "rgb_camera"
+            fieldOfView 1.047
             width 640
             height 480
-            fieldOfView 1.047
-            near 0.01
-            far 20.0
+            far 20
           }
         ]
+        name "camera_mount"
       }
     }
   ]
