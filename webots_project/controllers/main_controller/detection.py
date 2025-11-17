@@ -7,18 +7,20 @@ class Detection:
     def __init__(self, robot):
         self.robot = robot
         self.camera = self.robot.getDevice("rgb_camera")
+        self.camera_motor = self.robot.getDevice("camera_motor")
         timestep = int(self.robot.getBasicTimeStep())
         self.camera.enable(timestep) #Updates cameras every interval(Creates a refresh loop)
         print("Detection module initialized")
 
     def detect(self):
        image = self.camera.getImage()
+       self.camera_motor.setVelocity(1.0)
+       self.camera_motor.setPosition(float('inf'))
        if image is None:
            print("No camera image yet")
            return []
        width = self.camera.getWidth()
        height = self.camera.getHeight()
-        
        # Reorganises the massive 1 byte buffer to a structured 3d so that it can be understood
        image_array = np.frombuffer(image, np.uint8).reshape((height, width, 4))
         
