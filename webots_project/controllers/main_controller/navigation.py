@@ -2,6 +2,7 @@
 # Handles robot movement and obstacle avoidance
 
 import math
+import numpy as np
 
 # Global defines
 AXLE_LENGTH = 0.160
@@ -52,7 +53,7 @@ class Navigation:
         self.max_speed = 6.28
         
         # Set goal and start position
-        self.goal = (1.2, 0)
+        self.goal = (1.0, 1.0)
         self.start = (0.0, 0.0)
         
         # M-line equation
@@ -61,7 +62,9 @@ class Navigation:
         self.a = ys - yg
         self.b = xg - xs
         self.c = xs *yg - xg * ys
-        self.mline_tolerance = 0.05 #Parameter for how far from line
+        
+        #Parameter for how far from line to be considered on the line
+        self.mline_tolerance = 0.10
         
         # Normalise M-line coefficients for better distance calculation
         norm = math.sqrt(self.a**2 + self.b**2)
@@ -71,18 +74,17 @@ class Navigation:
             self.c /= norm
         
         self.state = "GO_TO_GOAL"
-        self.hit_point = None
+        # Where we first hit the obstacle
+        self.hit_point = None 
+        # How far to be considered obstacle
         self.obs_threshold = 0.25
         self.clearance_threshold = 0.35
         
         # Wall following parameters
         self.follow_side = None
-        self.target_distance = 0.15 # Distance from wall
+        # Distance from wall
+        self.target_distance = 0.15
         self.wall_follow_speed = 2.0
-        
-        # M-line tracking
-        self.on_mline_count = 0
-        self.on_mline_required = 2
         
         print("init complete")
         
@@ -94,7 +96,7 @@ class Navigation:
         
         # Compute wheel displacements
         dl = (left_angle - self.prev_left_angle) * WHEEL_RADIUS
-        dr = (right_angle - self.prev_right_angle) *WHEEL_RADIUS
+        dr = (right_angle - self.prev_right_angle) * WHEEL_RADIUS
         
         # Store current angles for next step
         self.prev_left_angle = left_angle
@@ -136,6 +138,8 @@ class Navigation:
         
         return v_left, v_right, rho 
     
+    # Compute distance from the M-Line and return true if the distance
+    # remains in the tolerance
     def on_mline(self):
         distance_to_line = abs(self.a*self.x + self.b*self.y + self.c)
         return distance_to_line < self.mline_tolerance
@@ -210,10 +214,13 @@ class Navigation:
         
         # Calculate wheel speeds based on wall
         if self.follow_side == "RIGHT":
-            # Follow right wall
+            # Find difference between desired wall distance
+            # and current wall distance
             error = closest_right - self.target_distance
             turn_correction = error * 3.0
             
+            # If there is an obstacle close, avoid it by
+            # turning other way
             if closest_front < 0.2:
                 v_left = base_speed
                 v_right = -0.5 * base_speed
@@ -258,7 +265,7 @@ class Navigation:
                 v_left, v_right = self.wall_follow()
             else:
                 # Continue towards goal
-                v_left, v_right, rpho = self.goto_position(*self.goal)
+                v_left, v_right, rho = self.goto_position(*self.goal)
         
         elif self.state == "WALL_FOLLOW":
             # Compute distance from hit point to goal
@@ -270,23 +277,19 @@ class Navigation:
             else:
                 distance_hit_to_goal = float('inf')
                 
-            if self.on_mline():
-                self.on_mline_count += 1
-            else:
-                self.on_mline_count = 0
-                
             # Switch back to GO_TO_GOAL if:
             # Path ahead is clear
             # On M-line
             # Closer to goal than hit point
+            
             current_distance = self.distance_to_goal()
             
-            if self.on_mline_count >= self.on_mline_required and current_distance < distance_hit_to_goal and self.path_clear():
+            if self.on_mline() and current_distance < distance_hit_to_goal and self.path_clear():
                 print("Back on M-line -> GO_TO_GOAL")
                 self.state = "GO_TO_GOAL"
                 self.follow_side = None
                 self.on_mline_count = 0
-                v_left, v_right, rpho = self.goto_position(*self.goal)
+                v_left, v_right, rho = self.goto_position(*self.goal)
             else:
                 # Continue to follow obstacle
                 v_left, v_right = self.wall_follow()
