@@ -2,55 +2,148 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/solids/protos/SolidBox.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation 0.14503257706728628 0.0328391481743416 -0.9888817633753823 2.701041960095545
-  position 1.7022618742287827 1.361913762558974 0.7120667866993194
+  orientation -0.11844056141261164 0.9700247491287801 0.21218817000462661 0.7447216609147839
+  position -1.9015799272727825 -0.13501521256022642 1.4304503535073916
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
-RectangleArena {
+DEF FLOOR Solid {
+  children [
+    DEF FLOOR_SHAPE Shape {
+      appearance PBRAppearance {
+        baseColor 0.42 0.73 0.44
+        roughness 1
+        metalness 0
+      }
+      geometry Plane {
+        size 1.4 1.4
+      }
+    }
+  ]
+  name "ground"
+  boundingObject USE FLOOR_SHAPE
+  locked TRUE
+}
+DEF FLOOR_BORDER Solid {
+  translation 0 0 -0.001
+  children [
+    DEF FLOOR_BORDER_SHAPE Shape {
+      appearance PBRAppearance {
+        baseColor 0.21 0.22 0.24
+        roughness 1
+        metalness 0
+      }
+      geometry Plane {
+        size 1.8 1.8
+      }
+    }
+  ]
+}
+DEF WALL Solid {
+  children [
+    Shape {
+      appearance DEF WALL_APPEARANCE PBRAppearance {
+        baseColor 0.42 0.73 0.44
+        roughness 1
+        metalness 0
+      }
+      geometry DEF WALL_GEOMETRY IndexedFaceSet {
+        coord Coordinate {
+          point [
+            -0.9 -0.9 0
+            0.9 -0.9 0
+            0.9 0.9 0
+            -0.9 0.9 0
+            -0.9 0.89 0
+            0.89 0.89 0
+            0.89 -0.89 0
+            -0.89 -0.89 0
+            -0.89 0.89 0
+            -0.9 0.89 0
+            -0.9 -0.9 0
+            -0.9 -0.9 0.05
+            0.9 -0.9 0.05
+            0.9 0.9 0.05
+            -0.9 0.9 0.05
+            -0.9 0.89 0.05
+            0.89 0.89 0.05
+            0.89 -0.89 0.05
+            -0.89 -0.89 0.05
+            -0.89 0.89 0.05
+            -0.9 0.89 0.05
+            -0.9 -0.9 0.05
+          ]
+        }
+        coordIndex [
+          10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, -1, 0, 1, 12, 11, -1, 1, 2, 13, 12, -1, 2, 3, 14, 13, -1, 3, 4, 15, 14, -1, 4, 5, 16, 15, -1, 5, 6, 17, 16, -1, 6, 7, 18, 17, -1, 7, 8, 19, 18, -1, 8, 9, 20, 19, -1, 9, 10, 21, 20, -1
+        ]
+      }
+    }
+  ]
+  name "wall"
+  boundingObject Group {
+    children [
+      Pose {
+        translation 0 -0.89 0.025
+        children [
+          DEF WALL_SHAPE Shape {
+            appearance USE WALL_APPEARANCE
+            geometry Box {
+              size 1.8 0.01 0.05
+            }
+          }
+        ]
+      }
+      Pose {
+        translation 0 0.89 0.025
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+      Pose {
+        translation -0.89 0 0.025
+        rotation 0 0 1 1.57
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+      Pose {
+        translation 0.89 0 0.025
+        rotation 0 0 1 1.57
+        children [
+          USE WALL_SHAPE
+        ]
+      }
+    ]
+  }
+  locked TRUE
 }
 SolidBox {
-  translation 0 0.5 0.5
-  size 0.1 0.1 1
-  appearance PBRAppearance {
-    baseColor 1 0 0
-    baseColorMap ImageTexture {
-      url [
-        "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/default/worlds/textures/tagged_wall.jpg"
-      ]
-    }
-    roughness 0.5
-    metalness 0
-  }
+  translation -0.048794 0.0118359 0.1
+  size 0.2 0.2 0.2
 }
 TurtleBot3Burger {
-  hidden position_0_1 -3.846805618728903e-14
-  hidden position_0_2 -5.016148969798745e-12
-  hidden position_0_3 4.50761121013634e-08
-  hidden position2_0_3 0.00021569118367812377
-  hidden position3_0_3 -4.92063485262292e-07
-  hidden linearVelocity_0 -1.2684390339458584e-07 -4.3762910711593987e-13 -3.47222242017031e-07
-  hidden angularVelocity_0 2.453449966608049e-12 -4.251772790652101e-06 1.0424113788749784e-11
-  hidden linearVelocity_3 -1.4031072395237067e-07 -8.208123862920339e-14 -1.9849127844089304e-07
-  hidden angularVelocity_3 2.4603363457379962e-12 -4.2517725007576645e-06 1.0422425383621778e-11
-  hidden linearVelocity_4 -1.4031229888312625e-07 -7.95077140984587e-14 -1.9849101266362712e-07
-  hidden angularVelocity_4 2.448150932821382e-12 -4.251821291737907e-06 1.0432379433657921e-11
-  hidden rotation_5 0.00020873791009834325 0.9999973760350227 -0.002281304792035658 0.00021569175072367675
-  hidden linearVelocity_5 -1.5384602546871e-08 -8.516242010239316e-13 -5.42336126336612e-07
-  hidden angularVelocity_5 2.1290603714309945e-10 -3.8461506691103e-06 -2.4158872468256328e-12
-  translation 7.124223367488414e-08 -2.3812614360458304e-10 -0.00020953890247817422
-  rotation -4.341252400755927e-06 -0.9999999999905648 -1.5522023114703412e-07 0.004408485802446039
+  translation -0.6291947747989249 -0.02062623369030246 -0.00026323675581886585
+  rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
   controller "main_controller"
   extensionSlot [
+    Display {
+      width 150
+      height 150
+    }
+    InertialUnit {
+    }
+    Lidar {
+      name "LDS-01"
+    }
     HingeJoint {
       jointParameters HingeJointParameters {
         position 71.35743999999569

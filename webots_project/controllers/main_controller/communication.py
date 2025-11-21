@@ -1,270 +1,152 @@
-import asyncio
-import websockets
+# communication.py
+
 import json
-import threading
 import time
-from controller import Supervisor  # Used for accessing real-time Webots data
+import math
 
 
 class Communication:
-    """Handles all WebSocket-based communication for the rescue robot system."""
-
     def __init__(self, robot_instance=None):
-        """
-        Initialize the Communication module.
-
-        Args:
-            robot_instance (Supervisor, optional): Webots robot instance used
-                for accessing real sensor and position data.
-        """
         self.robot = robot_instance
-        self.supervisor = None
+        self.data_file = "robot_data.json"
+        self.start_time = time.time()
+        self.update_count = 0
 
-        # WebSocket configuration
-        self.websocket_host = "localhost"
-        self.websocket_port = 8765
-        self.connected_clients = set()
+    def send(self, robot_data, survivors, map_data):
+        current_time = time.time() - self.start_time
+        self.update_count += 1
 
-        # Cached data
-        self.latest_map_data = {}
-        self.latest_survivors = []
-        self.latest_robot_data = {}
-
-        # Start WebSocket server in background
-        self._start_websocket_server()
-
-        print(" Communication module initialized.")
-        print(f"   WebSocket URL: ws://{self.websocket_host}:{self.websocket_port}")
-        print(f"   Web UI (run separately): http://{self.websocket_host}:8000")
-
-    # -------------------------------------------------------------------------
-    # WebSocket server setup
-    # -------------------------------------------------------------------------
-    def _start_websocket_server(self):
-        """Start the WebSocket server in a separate daemon thread."""
-
-        def run_server():
-            try:
-                asyncio.set_event_loop(asyncio.new_event_loop())
-                start_server = websockets.serve(
-                    self._websocket_handler, self.websocket_host, self.websocket_port
-                )
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(start_server)
-                print(f"   WebSocket server started on port {self.websocket_port}")
-                loop.run_forever()
-            except Exception as e:
-                print(f" WebSocket server error: {e}")
-
-        server_thread = threading.Thread(target=run_server, daemon=True)
-        server_thread.start()
-        time.sleep(1)  # Allow time for the server to initialize
-
-    # -------------------------------------------------------------------------
-    # WebSocket handler and data broadcasting
-    # -------------------------------------------------------------------------
-    async def _websocket_handler(self, websocket, path):
-        """Handle client connections via WebSocket."""
-        self.connected_clients.add(websocket)
-        print(f"🔗 Client connected. Total clients: {len(self.connected_clients)}")
-
-        try:
-            # Send welcome message
-            await websocket.send(json.dumps({
-                "type": "system",
-                "message": "Connected to Rescue Robot Communication Server",
-                "timestamp": time.time()
-            }))
-
-            # Send the latest available data immediately
-            for payload in [self.latest_robot_data, self.latest_map_data, self.latest_survivors]:
-                if payload:
-                    await websocket.send(json.dumps(payload))
-
-            # Keep the connection alive
-            await websocket.wait_closed()
-
-        except Exception as e:
-            print(f" WebSocket client error: {e}")
-        finally:
-            self.connected_clients.remove(websocket)
-            print(f" Client disconnected. Total clients: {len(self.connected_clients)}")
-
-    async def _broadcast_data(self, data):
-        """Broadcast a JSON-serializable dictionary to all connected clients."""
-        if not self.connected_clients:
-            return
-
-        message = json.dumps(data)
-        try:
-            await asyncio.wait([client.send(message) for client in self.connected_clients])
-        except Exception as e:
-            print(f"Broadcast error: {e}")
-
-    # -------------------------------------------------------------------------
-    # Core data management
-    # -------------------------------------------------------------------------
-    def send(self, map_data, survivors):
-        """
-        Send the latest map, survivor, and robot data to all connected clients.
-
-        Args:
-            map_data (dict): Map data received from the mapping module.
-            survivors (list): List of detected survivors from the detection module.
-        """
-        self.latest_map_data = self._format_map_data(map_data)
-        self.latest_survivors = self._format_survivors_data(survivors)
-        self.latest_robot_data = self._format_robot_data()
-
-        packets = [
-            self.latest_robot_data,
-            self.latest_survivors,
-            self.latest_map_data,
-            self._get_system_status()
-        ]
-
-        for packet in packets:
-            try:
-                asyncio.run(self._broadcast_data(packet))
-            except Exception as e:
-                print(f"Send error: {e}")
-
-    def _get_robot_position(self):
-        """Retrieve real robot position (if available), otherwise return simulated data."""
-        if self.robot:
-            try:
-                gps = self.robot.getDevice("gps")
-                if gps:
-                    position = gps.getValues()
-                    return {
-                        "x": position[0],
-                        "y": position[2],  # Z in Webots corresponds to height
-                        "z": position[1]
-                    }
-            except Exception:
-                pass
-
-        # Fallback: return simulated zero position
-        return {"x": 0.0, "y": 0.0, "z": 0.0}
-
-    # -------------------------------------------------------------------------
-    # Data formatting utilities
-    # -------------------------------------------------------------------------
-    def _format_robot_data(self):
-        """Format robot telemetry for broadcasting."""
-        pos = self._get_robot_position()
-        return {
-            "type": "robot",
+        complete_data = {
             "timestamp": time.time(),
-            "data": {
-                "position": pos,
-                "battery": 85,  # Placeholder for real sensor data
-                "status": "exploring",
-                "velocity": 0.0
-            }
+            "update_count": self.update_count,
+            "robot": self._format_robot_data(robot_data),
+            "survivors": self._format_survivor_data(survivors),
+            "navigation": self._format_navigation_data(robot_data),
+            "mapping": self._format_mapping_data(map_data),
+            "system": self._format_system_data(current_time),
+            "sensors": self._format_sensor_data(robot_data)
         }
 
-    def _format_survivors_data(self, survivors):
-        """Format survivor detection data."""
+        self._save_to_file(complete_data)
+
+    def _format_robot_data(self, robot_data):
+        position = robot_data["position"]
+        return {
+            "position": {
+                "x": round(position["x"], 3),
+                "y": round(position["y"], 3),
+                "theta": round(position["theta"], 3),
+                "theta_degrees": round(position["theta"] * 180 / math.pi, 1)
+            },
+            "battery": robot_data.get("battery", 85),
+            "status": "active",
+            "velocity": robot_data.get("velocity", 0.5),
+            "data_source": "navigation"
+        }
+
+    def _format_navigation_data(self, robot_data):
+        return {
+            "current_state": robot_data["navigation_state"],
+            "goal_position": robot_data["goal_position"],
+            "obstacle_detected": robot_data["obstacle_detected"],
+            "movement_status": "exploring",
+            "algorithm": "Bug2_with_Obstacle_Avoidance"
+        }
+
+    def _format_survivor_data(self, survivors):
         if survivors and len(survivors) > 0:
-            formatted = [{
-                "id": i,
-                "x": s.get("x", i * 2.0),
-                "y": s.get("y", i * 1.5),
-                "confidence": s.get("confidence", 0.8),
-                "type": "detected"
-            } for i, s in enumerate(survivors)]
-        else:
-            # Simulated test data
-            formatted = [
-                {"id": 1, "x": 2.0, "y": 1.5, "confidence": 0.92, "type": "simulated"},
-                {"id": 2, "x": -1.5, "y": 2.5, "confidence": 0.78, "type": "simulated"},
-                {"id": 3, "x": 3.0, "y": -2.0, "confidence": 0.85, "type": "simulated"}
+            return [
+                {
+                    "id": idx,
+                    "x": s.get("x", 0),
+                    "y": s.get("y", 0),
+                    "confidence": s.get("confidence", 0.8),
+                    "status": "detected",
+                    "data_source": "camera"
+                }
+                for idx, s in enumerate(survivors)
             ]
+        return []
 
-        return {
-            "type": "survivors",
-            "timestamp": time.time(),
-            "data": {
-                "count": len(formatted),
-                "survivors": formatted
+    def _format_mapping_data(self, map_data):
+        if hasattr(map_data, 'shape'):
+            return {
+                "status": "active",
+                "map_size": f"{map_data.shape[0]}x{map_data.shape[1]}",
+                "resolution": "0.1m/pixel",
+                "data_source": "slam"
             }
+        return {
+            "status": "initializing",
+            "map_size": "200x200",
+            "resolution": "0.1m/pixel",
+            "data_source": "placeholder"
         }
 
-    def _format_map_data(self, map_data):
-        """Format mapping data for broadcasting."""
-        if map_data and isinstance(map_data, dict):
-            formatted = map_data
-        else:
-            formatted = {
-                "type": "grid",
-                "bounds": {"min_x": -10, "max_x": 10, "min_y": -10, "max_y": 10},
-                "resolution": 0.1,
-                "data": [],
-                "status": "mapping_in_progress"
-            }
-
+    def _format_sensor_data(self, robot_data):
+        lidar_data = robot_data.get("lidar_data", [])
         return {
-            "type": "map",
-            "timestamp": time.time(),
-            "data": formatted
+            "lidar": {
+                "points": len(lidar_data),
+                "range": (
+                    f"{min(lidar_data):.2f}-{max(lidar_data):.2f}m"
+                    if lidar_data else "0-0m"
+                ),
+                "status": "active"
+            },
+            "camera": {"status": "streaming", "resolution": "640x480"},
+            "imu": {"status": "active"}
         }
 
-    def _get_system_status(self):
-        """Return overall system health information."""
+    def _format_system_data(self, current_time):
         return {
-            "type": "system",
-            "timestamp": time.time(),
-            "data": {
-                "communication_delay": 0.05,
-                "clients_connected": len(self.connected_clients),
-                "map_quality": 0.95,
-                "robot_connected": self.robot is not None,
-                "update_rate": "realtime"
-            }
+            "operational_time": int(current_time),
+            "update_rate": "real_time",
+            "system_status": "operational",
+            "communication_mode": "file_json",
+            "data_quality": "sensor_data"
         }
 
-    # -------------------------------------------------------------------------
-    # Alerts and emergency notifications
-    # -------------------------------------------------------------------------
+    def _save_to_file(self, data):
+        try:
+            with open(self.data_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
+
     def send_emergency_alert(self, alert_type, message):
-        """Send high-priority emergency alerts to all connected clients."""
-        alert = {
-            "type": "alert",
+        alert_data = {
+            "type": "emergency_alert",
             "timestamp": time.time(),
-            "data": {
-                "alert_type": alert_type,
+            "alert": {
+                "type": alert_type,
                 "message": message,
                 "priority": "high"
             }
         }
-        try:
-            asyncio.run(self._broadcast_data(alert))
-            print(f" Emergency alert sent: {message}")
-        except Exception as e:
-            print(f"Alert send error: {e}")
+        self._save_to_file(alert_data)
 
 
-# -------------------------------------------------------------------------
-# Standalone testing entry point
-# -------------------------------------------------------------------------
-def test_communication_module():
-    """Run standalone tests for the communication module (without Webots)."""
-    print(" Testing Communication Module...")
-
+def test_communication_system():
     comm = Communication()
 
-    # Send example data
-    test_map = {"test": "map_data"}
+    test_robot_data = {
+        "position": {"x": 1.23, "y": 0.87, "theta": 0.78},
+        "navigation_state": "GO_TO_GOAL",
+        "goal_position": (1.0, 0),
+        "obstacle_detected": False,
+        "battery": 82,
+        "lidar_data": [1.5, 1.6, 1.4, 2.0, 1.8],
+        "velocity": 0.55
+    }
+
     test_survivors = []
+    test_map_data = {}
 
-    print("Sending test data...")
-    comm.send(test_map, test_survivors)
-
-    print(" Communication module test completed.")
-    print(f"   WebSocket server running on ws://localhost:8765")
-    print("   Connect via any WebSocket client to verify transmission.")
+    for _ in range(3):
+        comm.send(test_robot_data, test_survivors, test_map_data)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
-    test_communication_module()
+    test_communication_system()
