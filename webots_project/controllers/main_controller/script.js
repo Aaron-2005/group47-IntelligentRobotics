@@ -1,8 +1,3 @@
-/**
- * Rescue Robot Monitor - Web UI
- * Group 47 - Intelligent Robotics Course
- * Real-time monitoring of robot position, navigation, and sensor data
- */
 
 class RescueRobotMonitor {
     constructor() {
