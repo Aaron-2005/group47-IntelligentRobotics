@@ -265,7 +265,7 @@ PROTO TurtleBot3Burger [
           }
           DEF BARS Shape {
             appearance BrushedAluminium {
-              textureTransform TextureTransform {
+                textureTransform TextureTransform {
                 scale 3 2
               }
             }
@@ -284,6 +284,17 @@ PROTO TurtleBot3Burger [
       Compass {
         translation -0.032 0 0.078
       }
+      Camera {
+        name        "rgb_camera"
+        width       640
+        height      480
+        fieldOfView 1.047          
+        position    0.06 0 0.18    
+        orientation 0 1 0 0         
+        near        0.01
+        far         20.0
+      }
+      
     ]
     boundingObject Group {
       children [
