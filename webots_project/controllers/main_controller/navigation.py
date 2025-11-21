@@ -53,7 +53,7 @@ class Navigation:
         self.max_speed = 6.28
         
         # Set goal and start position
-        self.goal = (1.0, 1.0)
+        self.goal = (1.0, 0)
         self.start = (0.0, 0.0)
         
         # M-line equation
