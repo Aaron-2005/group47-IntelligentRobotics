@@ -1,6 +1,4 @@
 # communication.py
-# Group 47 - Real-time Communication System
-# Provides integrated data output for rescue robot
 
 import json
 import time
