@@ -1,1 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rescue Robot Monitor - Group 47</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Rescue Robot Live Monitor</h1>
+            <div class="subtitle">Group 47 - Intelligent Robotics Course Project</div>
+        </header>
 
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="label">System Status:</span>
+                <span id="system-status" class="status-good">Operational</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Last Update:</span>
+                <span id="last-update">--</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Data Source:</span>
+                <span id="data-source">REAL Sensors</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Update Count:</span>
+                <span id="update-count">0</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Column: Map and Robot Data -->
+            <div class="left-column">
+                <div class="panel map-panel">
+                    <h2>Live Exploration Map</h2>
+                    <div class="map-container">
+                        <div class="coordinate-system" id="coordinate-system">
+                            <div class="grid-overlay"></div>
+                            <div class="robot-marker" id="robot-marker">
+                                <div class="robot-icon">R</div>
+                                <div class="robot-info">
+                                    <div class="robot-name">Rescue Bot</div>
+                                    <div id="robot-position">X: 0.00, Y: 0.00</div>
+                                </div>
+                            </div>
+                            <!-- Survivor markers will be added dynamically -->
+                        </div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color robot"></span>
+                                <span>Robot Position</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color survivor"></span>
+                                <span>Survivors</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color goal"></span>
+                                <span>Goal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel robot-panel">
+                    <h2>Robot Status</h2>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <label>Position:</label>
+                            <span id="robot-pos">X: 0.00, Y: 0.00</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Orientation:</label>
+                            <span id="robot-orientation">--°</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Battery:</label>
+                            <span id="robot-battery">--%</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Velocity:</label>
+                            <span id="robot-velocity">-- m/s</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Navigation State:</label>
+                            <span id="nav-state">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Goal Position:</label>
+                            <span id="goal-pos">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Obstacle Detected:</label>
+                            <span id="obstacle-status">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: System Data -->
+            <div class="right-column">
+                <div class="panel survivors-panel">
+                    <h2>Survivor Detection</h2>
+                    <div class="survivors-header">
+                        <span>Detected: </span>
+                        <span id="survivors-count">0</span>
+                        <span> survivors</span>
+                    </div>
+                    <div id="survivors-list" class="survivors-list">
+                        <div class="no-data">No survivors detected yet</div>
+                    </div>
+                </div>
+
+                <div class="panel navigation-panel">
+                    <h2>Navigation System</h2>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <label>Current State:</label>
+                            <span id="current-state">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Algorithm:</label>
+                            <span id="nav-algorithm">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Movement Status:</label>
+                            <span id="movement-status">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel mapping-panel">
+                    <h2>Mapping System</h2>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <label>Map Status:</label>
+                            <span id="map-status">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Map Size:</label>
+                            <span id="map-size">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Resolution:</label>
+                            <span id="map-resolution">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Data Source:</label>
+                            <span id="map-source">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel sensors-panel">
+                    <h2>Sensor Status</h2>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <label>LIDAR:</label>
+                            <span id="lidar-status">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>Camera:</label>
+                            <span id="camera-status">--</span>
+                        </div>
+                        <div class="data-item">
+                            <label>IMU:</label>
+                            <span id="imu-status">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="system-info">
+                <span>University of Birmingham - Intelligent Robotics Course</span>
+                <span>|</span>
+                <span>Disaster Response Robot Simulation</span>
+                <span>|</span>
+                <span>REAL Sensor Integration</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
