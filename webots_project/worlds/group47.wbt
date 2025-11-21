@@ -1,4 +1,5 @@
 #VRML_SIM R2025a utf8
+
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
@@ -134,6 +135,15 @@ TurtleBot3Burger {
   rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
   controller "main_controller"
   extensionSlot [
+    Display {
+      width 150
+      height 150
+    }
+    InertialUnit {
+    }
+    Lidar {
+      name "LDS-01"
+    }
     HingeJoint {
       jointParameters HingeJointParameters {
         axis 0 0 1
@@ -145,18 +155,17 @@ TurtleBot3Burger {
         }
       ]
       endPoint Solid {
-        name "camera_mount"
         translation 0 0 0.18
         children [
           Camera {
             name "rgb_camera"
+            fieldOfView 1.047
             width 640
             height 480
-            fieldOfView 1.047
-            near 0.01
-            far 20.0
+            far 20
           }
         ]
+        name "camera_mount"
       }
     }
   ]
