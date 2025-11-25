@@ -17,22 +17,22 @@ timestep = int(robot.getBasicTimeStep())
 
 # Initialize modules
 nav = navigation.Navigation(robot, timestep)
-# map_module = mapping.Mapping(robot)
-# detector = detection.Detection(robot)
-# comm = communication.Communication()
+map_module = mapping.Mapping(robot)
+detector = detection.Detection(robot)
+comm = communication.Communication()
 
 print("✅ Robot controller started successfully")
 
 # Main control loop
 while robot.step(timestep) != -1:
     # Update map
-    # map_module.update()
+    map_module.update()
 
     # Detect survivors
-    # survivors = detector.detect()
+    survivors = detector.detect()
 
     # Navigate safely
     nav.move()
 
     # Send data back to rescue team
-    # comm.send(map_module.map_data, survivors)
+    #comm.send(map_module.map_data, survivors)

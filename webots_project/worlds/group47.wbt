@@ -139,4 +139,39 @@ TurtleBot3Burger {
   translation -0.6291947747989249 -0.02062623369030246 -0.00026323675581886585
   rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
   controller "main_controller"
+  extensionSlot [
+    Display {
+      width 150
+      height 150
+    }
+    InertialUnit {
+    }
+    Lidar {
+      name "LDS-01"
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis 0 0 1
+        anchor 0 0 0.18
+      }
+      device [
+        RotationalMotor {
+          name "camera_motor"
+        }
+      ]
+      endPoint Solid {
+        translation 0 0 0.18
+        children [
+          Camera {
+            name "rgb_camera"
+            fieldOfView 1.047
+            width 640
+            height 480
+            far 20
+          }
+        ]
+        name "camera_mount"
+      }
+    }
+  ]
 }
