@@ -14,13 +14,11 @@ robot = Robot()
 
 # Get the simulation time step (ms)
 timestep = int(robot.getBasicTimeStep())
-
 # Initialize modules
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
 comm = communication.Communication()
-
 print("✅ Robot controller started successfully")
 
 # Main control loop

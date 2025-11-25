@@ -4,7 +4,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/solids/protos/SolidBox.proto"
-
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/robotis/protos/RobotisLds01.proto"
 WorldInfo {
 }
 Viewpoint {
@@ -140,14 +140,14 @@ TurtleBot3Burger {
   rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
   controller "main_controller"
   extensionSlot [
+  RobotisLds01 {
+      name "LDS-01" 
+    }
     Display {
       width 150
       height 150
     }
     InertialUnit {
-    }
-    Lidar {
-      name "LDS-01"
     }
     HingeJoint {
       jointParameters HingeJointParameters {
