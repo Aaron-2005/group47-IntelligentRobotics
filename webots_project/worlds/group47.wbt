@@ -8,8 +8,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.11844056141261164 0.9700247491287801 0.21218817000462661 0.7447216609147839
-  position -1.9015799272727825 -0.13501521256022642 1.4304503535073916
+  orientation -0.05358978051156684 0.9977005798350103 0.041493233443616245 0.7876374974311431
+  position -1.8658679065927595 0.1171462749846311 1.5492592691676417
 }
 TexturedBackground {
 }
@@ -69,17 +69,17 @@ DEF WALL Solid {
             -0.89 0.89 0
             -0.9 0.89 0
             -0.9 -0.9 0
-            -0.9 -0.9 0.05
-            0.9 -0.9 0.05
-            0.9 0.9 0.05
-            -0.9 0.9 0.05
-            -0.9 0.89 0.05
-            0.89 0.89 0.05
-            0.89 -0.89 0.05
-            -0.89 -0.89 0.05
-            -0.89 0.89 0.05
-            -0.9 0.89 0.05
-            -0.9 -0.9 0.05
+            -0.9 -0.9 0.3
+            0.9 -0.9 0.3
+            0.9 0.9 0.3
+            -0.9 0.9 0.3
+            -0.9 0.89 0.3
+            0.89 0.89 0.3
+            0.89 -0.89 0.3
+            -0.89 -0.89 0.3
+            -0.89 0.89 0.3
+            -0.9 0.89 0.3
+            -0.9 -0.9 0.3
           ]
         }
         coordIndex [
@@ -92,31 +92,31 @@ DEF WALL Solid {
   boundingObject Group {
     children [
       Pose {
-        translation 0 -0.89 0.025
+        translation 0 -0.89 0.15
         children [
           DEF WALL_SHAPE Shape {
             appearance USE WALL_APPEARANCE
             geometry Box {
-              size 1.8 0.01 0.05
+              size 1.8 0.01 0.3
             }
           }
         ]
       }
       Pose {
-        translation 0 0.89 0.025
+        translation 0 0.89 0.15
         children [
           USE WALL_SHAPE
         ]
       }
       Pose {
-        translation -0.89 0 0.025
+        translation -0.89 0 0.15
         rotation 0 0 1 1.57
         children [
           USE WALL_SHAPE
         ]
       }
       Pose {
-        translation 0.89 0 0.025
+        translation 0.89 0 0.15
         rotation 0 0 1 1.57
         children [
           USE WALL_SHAPE
@@ -127,48 +127,16 @@ DEF WALL Solid {
   locked TRUE
 }
 SolidBox {
+  translation 0.273652 -0.475122 0.1
+  size 0.2 0.2 0.2
+}
+SolidBox {
   translation -0.048794 0.0118359 0.1
+  name "box(1)"
   size 0.2 0.2 0.2
 }
 TurtleBot3Burger {
   translation -0.6291947747989249 -0.02062623369030246 -0.00026323675581886585
   rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
   controller "main_controller"
-  extensionSlot [
-    Display {
-      width 150
-      height 150
-    }
-    InertialUnit {
-    }
-    Lidar {
-      name "LDS-01"
-    }
-    HingeJoint {
-      jointParameters HingeJointParameters {
-        position 71.35743999999569
-        axis 0 0 1
-        anchor 0 0 0.18
-      }
-      device [
-        RotationalMotor {
-          name "camera_motor"
-        }
-      ]
-      endPoint Solid {
-        translation 0 0 0.18
-        rotation 0 0 -1 4.0407836861593465
-        children [
-          Camera {
-            name "rgb_camera"
-            fieldOfView 1.047
-            width 640
-            height 480
-            far 20
-          }
-        ]
-        name "camera_mount"
-      }
-    }
-  ]
 }

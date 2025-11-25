@@ -4,7 +4,8 @@
 import math
 import numpy as np
 
-# Global defines
+# TurtleBot measurements
+# From https://emanual.robotis.com/docs/en/platform/turtlebot3/features/
 AXLE_LENGTH = 0.160
 WHEEL_RADIUS = 0.033
 
