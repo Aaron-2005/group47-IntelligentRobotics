@@ -19,7 +19,7 @@ nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
 comm = communication.Communication()
-print("✅ Robot controller started successfully")
+print(" Robot controller started successfully")
 
 # Main control loop
 while robot.step(timestep) != -1:
