@@ -14,6 +14,9 @@ class Navigation:
         self.robot = robot
         self.timestep = timestep
         
+        # Set tolerance for how close to goal
+        self.goal_tolerance = 0.20
+        
         # Get motor devices
         self.left_motor = robot.getDevice('left wheel motor')
         self.right_motor = robot.getDevice('right wheel motor')
@@ -252,9 +255,16 @@ class Navigation:
         dy = goal_y - self.y
         return math.sqrt(dx*dx + dy*dy)
     
-    def move(self):    
+    def move(self):
         #Update pose
         self.update_odometry()
+        
+        # Check if we have reached the goal
+        if self.distance_to_goal() < self.goal_tolerance:
+            self.left_motor.setVelocity(0)
+            self.right_motor.setVelocity(0)
+            print("Goal reached")
+            return
         
         if self.state == "GO_TO_GOAL":
             # If obstacle appears ahead, switch to wall follow state
