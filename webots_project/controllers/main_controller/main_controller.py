@@ -17,8 +17,11 @@ timestep = int(robot.getBasicTimeStep())
 # Initialize modules
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
-detector = detection.Detection(robot, nav)
+detector = detection.Detection(robot)
 comm = communication.Communication(robot)
+
+nav.detect = detector
+detector.nav = nav
 
 # Main control loop
 while robot.step(timestep) != -1:

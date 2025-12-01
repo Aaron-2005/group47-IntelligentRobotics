@@ -17,6 +17,8 @@ class Navigation:
         # Set tolerance for how close to goal
         self.goal_tolerance = 0.20
 
+        self.detect = None
+        
         # Get motor devices
         self.left_motor = robot.getDevice('left wheel motor')
         self.right_motor = robot.getDevice('right wheel motor')
@@ -265,11 +267,14 @@ class Navigation:
             #Update pose
             self.update_odometry()
 
+            print(self.distance_to_goal())
                 # Check if we have reached the goal
             if self.distance_to_goal() < self.goal_tolerance:
                 self.left_motor.setVelocity(0)
                 self.right_motor.setVelocity(0)
                 print("Goal reached")
+                self.detect.reset_scan()
+                self.reset()
                 return
 
             if self.state == "GO_TO_GOAL":
@@ -320,5 +325,38 @@ class Navigation:
         self.paused = True
         self.left_motor.setVelocity(0)
         self.right_motor.setVelocity(0)
+        
     def resume(self):
         self.paused = False
+        
+    def reset(self, new_start=None, new_goal=None):
+
+        # Reset previous encoder values
+        self.prev_left_angle = self.left_sensor.getValue()
+        self.prev_right_angle = self.right_sensor.getValue()
+    
+        # ---- Recompute M-line coefficients ----
+        xs, ys = self.start
+        xg, yg = self.goal
+    
+        self.a = ys - yg
+        self.b = xg - xs
+        self.c = xs * yg - xg * ys
+    
+        norm = math.sqrt(self.a**2 + self.b**2)
+        if norm > 0:
+            self.a /= norm
+            self.b /= norm
+            self.c /= norm
+    
+        # ---- Reset navigation state machine ----
+        self.state = "GO_TO_GOAL"
+        self.hit_point = None
+        self.follow_side = None
+    
+        # ---- Stop robot movement ----
+        self.left_motor.setVelocity(0)
+        self.right_motor.setVelocity(0)
+    
+        print("Navigation system reset.")
+    

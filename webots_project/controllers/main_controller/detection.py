@@ -5,9 +5,9 @@ import numpy as np
 import cv2
 import math
 class Detection:
-    def __init__(self, robot, nav):
+    def __init__(self, robot):
+        self.nav = None
         self.robot = robot
-        self.nav = nav
         self.camera = self.robot.getDevice("rgb_camera")
         self.camera_motor = self.robot.getDevice("camera_motor")
         self.camera_sensor = self.camera_motor.getPositionSensor()
@@ -23,7 +23,16 @@ class Detection:
         self.passed_zero = False
         print("Detection module initialized")
 
+    def reset_scan(self):
+        self.scan_done = False
+        self.start_angle = None
+        self.humans = {}
+        self.next_human_id = 0
+        self.detected_angles = []
+        self.final_distances = []
+        
     def detect(self):
+       print(self.scan_done)
        self.nav.pause()
        if self.start_angle is None:
            self.start_angle = self.camera_sensor.getValue()
@@ -52,7 +61,7 @@ class Detection:
        FOV = 1.047  
        IMAGE_WIDTH = 640
        PIXEL_ANGLE = FOV / IMAGE_WIDTH
-       HUMAN_WIDTH = 0.5
+       HUMAN_WIDTH = 0.2
        IMAGE_CENTER = 320
        CENTER_TOLERANCE = 40
        seen_ids = []
@@ -68,7 +77,7 @@ class Detection:
            for hid, data in self.humans.items(): 
                if abs(cx - data["last_x"]) < 60: # ~60 px tolerance 
                    matched_id = hid 
-           if matched_id is None: 
+           if matched_id is None and distance > 0.25: 
                matched_id = self.next_human_id 
                self.humans[matched_id] = {  #Dictionary of humans at the distances and angle we save them at
                "last_x": cx, 
