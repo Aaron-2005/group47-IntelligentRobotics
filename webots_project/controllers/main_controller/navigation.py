@@ -54,7 +54,7 @@ class Navigation:
         self.max_speed = 6.28
         
         # Set goal and start position
-        self.goal = (1.0, 0)
+        self.goal = [1.0, 0]
         self.start = (0.0, 0.0)
         
         # M-line equation
@@ -86,8 +86,9 @@ class Navigation:
         # Distance from wall
         self.target_distance = 0.15
         self.wall_follow_speed = 2.0
-        
-        print("init complete")
+        #Pause
+        self.paused = False
+        print("nav complete")
         
     # Update odometry values from encoder increments
     def update_odometry(self):   
@@ -252,51 +253,61 @@ class Navigation:
         dy = goal_y - self.y
         return math.sqrt(dx*dx + dy*dy)
     
-    def move(self):    
-        #Update pose
-        self.update_odometry()
-        
-        if self.state == "GO_TO_GOAL":
-            # If obstacle appears ahead, switch to wall follow state
-            if self.obstacle_detected():
-                self.state = "WALL_FOLLOW"
-                self.hit_point = (self.x, self.y)
-                self.follow_side = None
-                print("Hit obstacle -> WALL_FOLLOW")
-                v_left, v_right = self.wall_follow()
-            else:
-                # Continue towards goal
-                v_left, v_right, rho = self.goto_position(*self.goal)
-        
-        elif self.state == "WALL_FOLLOW":
-            # Compute distance from hit point to goal
-            if self.hit_point is not None:
-                hit_x, hit_y = self.hit_point
-                dx_hit = self.goal[0] - hit_x
-                dy_hit = self.goal[1] - hit_y
-                distance_hit_to_goal = math.sqrt(dx_hit*dx_hit + dy_hit*dy_hit)
-            else:
-                distance_hit_to_goal = float('inf')
+    def move(self):
+        if self.paused:
+            self.left_motor.setVelocity(0)
+            self.right_motor.setVelocity(0)
+        else:
+            print(self.goal)    
+            #Update pose
+            self.update_odometry()
+            if self.state == "GO_TO_GOAL":
+                # If obstacle appears ahead, switch to wall follow state
+                if self.obstacle_detected():
+                    self.state = "WALL_FOLLOW"
+                    self.hit_point = (self.x, self.y)
+                    self.follow_side = None
+                    print("Hit obstacle -> WALL_FOLLOW")
+                    v_left, v_right = self.wall_follow()
+                else:
+                    # Continue towards goal
+                    v_left, v_right, rho = self.goto_position(*self.goal)
+            
+            elif self.state == "WALL_FOLLOW":
+                # Compute distance from hit point to goal
+                if self.hit_point is not None:
+                    hit_x, hit_y = self.hit_point
+                    dx_hit = self.goal[0] - hit_x
+                    dy_hit = self.goal[1] - hit_y
+                    distance_hit_to_goal = math.sqrt(dx_hit*dx_hit + dy_hit*dy_hit)
+                else:
+                    distance_hit_to_goal = float('inf')
+                    
+                # Switch back to GO_TO_GOAL if:
+                # Path ahead is clear
+                # On M-line
+                # Closer to goal than hit point
                 
-            # Switch back to GO_TO_GOAL if:
-            # Path ahead is clear
-            # On M-line
-            # Closer to goal than hit point
+                current_distance = self.distance_to_goal()
+                
+                if self.on_mline() and current_distance < distance_hit_to_goal and self.path_clear():
+                    print("Back on M-line -> GO_TO_GOAL")
+                    self.state = "GO_TO_GOAL"
+                    self.follow_side = None
+                    self.on_mline_count = 0
+                    v_left, v_right, rho = self.goto_position(*self.goal)
+                else:
+                    # Continue to follow obstacle
+                    v_left, v_right = self.wall_follow()
             
-            current_distance = self.distance_to_goal()
-            
-            if self.on_mline() and current_distance < distance_hit_to_goal and self.path_clear():
-                print("Back on M-line -> GO_TO_GOAL")
-                self.state = "GO_TO_GOAL"
-                self.follow_side = None
-                self.on_mline_count = 0
-                v_left, v_right, rho = self.goto_position(*self.goal)
-            else:
-                # Continue to follow obstacle
-                v_left, v_right = self.wall_follow()
-        
-        # Set speed
-        self.left_motor.setVelocity(v_left)
-        self.right_motor.setVelocity(v_right)
+            # Set speed
+            self.left_motor.setVelocity(v_left)
+            self.right_motor.setVelocity(v_right)
         
         print(f"[{self.state}] x={self.x:.3f}, y={self.y:.3f}, theta={self.theta:.3f}")
+    def pause(self):
+        self.paused = True
+        self.left_motor.setVelocity(0)
+        self.right_motor.setVelocity(0)
+    def resume(self):
+        self.paused = False
