@@ -161,8 +161,6 @@ TurtleBot3Burger {
   translation -0.6291947674262529 -0.02062623367957491 -0.0002477392059892017
   rotation -0.00017782740617794965 -0.7766227702113513 0.6299659047652185 0.005977096704744467
   controller "main_controller"
-<<<<<<< HEAD
-=======
   extensionSlot [
     RobotisLds01 {
     }
@@ -202,5 +200,4 @@ TurtleBot3Burger {
       }
     }
   ]
->>>>>>> 5ed30255944f7503d47dd69e31841adeec867a48
 }
