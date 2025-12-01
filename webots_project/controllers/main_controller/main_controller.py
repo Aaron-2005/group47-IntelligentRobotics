@@ -14,14 +14,19 @@ robot = Robot()
 
 # Get the simulation time step (ms)
 timestep = int(robot.getBasicTimeStep())
-
 # Initialize modules
 nav = navigation.Navigation(robot, timestep)
+<<<<<<< HEAD
 #map_module = mapping.Mapping(robot)
 #detector = detection.Detection(robot)
 #comm = communication.Communication()
 
 print("✅ Robot controller started successfully")
+=======
+map_module = mapping.Mapping(robot)
+detector = detection.Detection(robot, nav)
+comm = communication.Communication(robot)
+>>>>>>> 5ed30255944f7503d47dd69e31841adeec867a48
 
 # Main control loop
 while robot.step(timestep) != -1:
@@ -29,10 +34,28 @@ while robot.step(timestep) != -1:
     #map_module.update()
 
     # Detect survivors
+<<<<<<< HEAD
     #survivors = detector.detect()
 
     # Navigate safely
+=======
+    survivors = detector.detect()
+>>>>>>> 5ed30255944f7503d47dd69e31841adeec867a48
     nav.move()
 
+    robot_data = {
+           "position": {
+               "x": nav.x,          
+               "y": nav.y,          
+               "theta": nav.theta   
+           },
+            "navigation_state": nav.state,                 
+            "goal_position": nav.goal,                       
+            "obstacle_detected": nav.obstacle_detected(),     
+            "battery": 85,                                   
+            "velocity": 0.5,                                
+            "lidar_data": []                               
+        }
+
     # Send data back to rescue team
-    #comm.send(map_module.map_data, survivors)
+comm.send(map_module.map_data, survivors)

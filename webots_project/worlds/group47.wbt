@@ -4,12 +4,13 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/solids/protos/SolidBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/robotis/protos/RobotisLds01.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.05358978051156684 0.9977005798350103 0.041493233443616245 0.7876374974311431
-  position -1.8658679065927595 0.1171462749846311 1.5492592691676417
+  orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
+  position 6.052240146209053e-16 1.6811778183914036e-17 2.572832574864342
 }
 TexturedBackground {
 }
@@ -131,12 +132,75 @@ SolidBox {
   size 0.2 0.2 0.2
 }
 SolidBox {
-  translation -0.048794 0.0118359 0.1
+  translation -0.638794 0.611836 0.1
   name "box(1)"
   size 0.2 0.2 0.2
 }
+SolidBox {
+  translation -0.0487939 0.211836 0.1
+  rotation 0 1 0 4.692820414042842e-06
+  name "box(2)"
+  size 0.2 0.2 0.2
+}
 TurtleBot3Burger {
-  translation -0.6291947747989249 -0.02062623369030246 -0.00026323675581886585
-  rotation -0.0013432379079951812 -0.7013134308131196 0.712851785066892 0.005282126739921413
+  hidden position_0_1 4.29311054678453e-11
+  hidden position_0_2 2.8562245877042585e-11
+  hidden position_0_3 -4.467425961062264e-07
+  hidden position2_0_3 8.108044299863916e-05
+  hidden position3_0_3 -1.0229036472776856e-08
+  hidden linearVelocity_0 6.617245040717336e-16 6.605258027675992e-16 5.938609979156616e-17
+  hidden angularVelocity_0 -1.985045179734101e-15 -4.930925643717548e-16 -2.496086783621611e-16
+  hidden rotation_12 0 -1 0 1.5707959999284447
+  hidden linearVelocity_12 -3.2963867075079516e-17 7.455066660564183e-16 6.856348851741164e-16
+  hidden angularVelocity_12 -1.3021044120748126e-14 -1.0142278438578575e-15 -1.4990373664362517e-16
+  hidden linearVelocity_13 -1.8737596768846136e-17 5.94182583116533e-16 -8.10295028121361e-16
+  hidden angularVelocity_13 -2.6037086464312162e-14 -4.075206414937971e-16 -1.876969617467552e-16
+  hidden rotation_14 -0.005509790146127881 0.9999848130049273 -0.0001263805611922265 8.108167514145879e-05
+  hidden linearVelocity_14 -6.938838079894843e-16 6.119059547297014e-16 -2.5365751854119846e-15
+  hidden angularVelocity_14 -1.5297648355613349e-13 -1.737386075743377e-13 -1.4861072400525138e-26
+  translation -0.6291947674262529 -0.02062623367957491 -0.0002477392059892017
+  rotation -0.00017782740617794965 -0.7766227702113513 0.6299659047652185 0.005977096704744467
   controller "main_controller"
+<<<<<<< HEAD
+=======
+  extensionSlot [
+    RobotisLds01 {
+    }
+    Display {
+      width 150
+      height 150
+    }
+    InertialUnit {
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position 19.008000000000017
+        axis 0 0 1
+        anchor 0 0 0.18
+      }
+      device [
+        RotationalMotor {
+          name "camera_motor"
+        }
+        PositionSensor {
+          name "camera_motor_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation 0 0 0.18
+        rotation 0 0 -1 6.12474122871833
+        children [
+          Camera {
+            name "rgb_camera"
+            fieldOfView 1.047
+            width 640
+            height 480
+            far 20
+          }
+        ]
+        name "camera_mount"
+      }
+    }
+  ]
+>>>>>>> 5ed30255944f7503d47dd69e31841adeec867a48
 }
