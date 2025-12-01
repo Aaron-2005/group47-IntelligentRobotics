@@ -15,7 +15,7 @@ class Navigation:
         self.timestep = timestep
 
         # Set tolerance for how close to goal
-        self.goal_tolerance = 0.20
+        self.goal_tolerance = 0.15
 
         self.detect = None
         
@@ -266,7 +266,6 @@ class Navigation:
             print(self.goal)
             #Update pose
             self.update_odometry()
-
             print(self.distance_to_goal())
                 # Check if we have reached the goal
             if self.distance_to_goal() < self.goal_tolerance:
@@ -329,34 +328,36 @@ class Navigation:
     def resume(self):
         self.paused = False
         
-    def reset(self, new_start=None, new_goal=None):
-
-        # Reset previous encoder values
-        self.prev_left_angle = self.left_sensor.getValue()
-        self.prev_right_angle = self.right_sensor.getValue()
+    def reset(self, new_goal=None):
     
-        # ---- Recompute M-line coefficients ----
-        xs, ys = self.start
+        # Use current position as new start
+        self.start = (self.x, self.y)
+    
+        # Set the goal
+        if new_goal is not None:
+            self.goal = new_goal
+    
+        # Recompute M-line ONLY IF goal exists
+        if self.goal is not None:
+            self.compute_m_line()
+    
+        self.state = "GO_TO_GOAL"
+        self.paused = False
+        print(f"New goal set: {self.goal}. M-line defined.")
+    def compute_m_line(self):
+        xs, ys = self.x,self.y
         xg, yg = self.goal
     
         self.a = ys - yg
         self.b = xg - xs
         self.c = xs * yg - xg * ys
     
+        # Normalize
         norm = math.sqrt(self.a**2 + self.b**2)
         if norm > 0:
             self.a /= norm
             self.b /= norm
             self.c /= norm
     
-        # ---- Reset navigation state machine ----
-        self.state = "GO_TO_GOAL"
-        self.hit_point = None
-        self.follow_side = None
-    
-        # ---- Stop robot movement ----
-        self.left_motor.setVelocity(0)
-        self.right_motor.setVelocity(0)
-    
-        print("Navigation system reset.")
-    
+        print(f"M-line updated: a={self.a:.3f}, b={self.b:.3f}, c={self.c:.3f}")
+      

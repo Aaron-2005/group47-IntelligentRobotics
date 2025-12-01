@@ -21,6 +21,7 @@ class Detection:
         self.humans = {}
         self.next_human_id = 0
         self.passed_zero = False
+        self.past_coordinates = []
         print("Detection module initialized")
 
     def reset_scan(self):
@@ -32,8 +33,6 @@ class Detection:
         self.final_distances = []
         
     def detect(self):
-       print(self.scan_done)
-       self.nav.pause()
        if self.start_angle is None:
            self.start_angle = self.camera_sensor.getValue()
        image = self.camera.getImage()
@@ -101,30 +100,42 @@ class Detection:
        cv2.imshow("Warm Colors", mask_warm)  # show color mask
        cv2.waitKey(1) 
        if not self.scan_done:
+           self.nav.pause()
            current = self.camera_sensor.getValue()
            if abs(current - self.start_angle) >= 2 * math.pi:   # Check for one full rotation 
                self.camera_motor.setVelocity(0)
                self.scan_done = True
                print("Scan finished.")
                coords = self.calculate_coordinates(self.detected_angles,self.final_distances)
-               print(coords[0] )
+               print(coords)
                closest_human = list(coords[0])
+               self.past_coordinates.append(coords[0])
                if coords:
-                   self.nav.goal[0] = closest_human[0]
-                   self.nav.goal[1] = closest_human[1] 
+                   self.nav.reset(new_goal=(closest_human[0], closest_human[1]))
                    print("Goal inside main loop:", self.nav.goal)    
        else:
            self.nav.resume()
        return []
-    def calculate_coordinates(self,anglelist,distancelist):
+    def calculate_coordinates(self, anglelist, distancelist):
         coords = []
-        print(distancelist)
-        print(anglelist)
         paired = list(zip(anglelist, distancelist))
-        paired.sort(key=lambda x: x[1])
+        paired.sort(key=lambda x: x[1])  # nearest first
         for angle, distance in paired:
             x = self.nav.x + distance * math.cos(self.nav.theta + angle)
             z = self.nav.y + distance * math.sin(self.nav.theta + angle)
+            too_close = False
+            for past_x, past_z in self.past_coordinates:
+                dx = x - past_x
+                dz = z - past_z
+                if math.sqrt(dx*dx + dz*dz) < 0.1:   
+                    too_close = True
+                    break
+    
+            if too_close:
+                continue 
             coords.append((x, z))
+    
         return coords
+    
+    
         
