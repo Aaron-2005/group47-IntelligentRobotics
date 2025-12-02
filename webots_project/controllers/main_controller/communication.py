@@ -9,6 +9,7 @@ import os
 
 class Communication:
     def __init__(self, robot_instance=None):
+        self.data_file = os.path.join(os.path.dirname(__file__), "robot_data.json"
         self.robot = robot_instance
         self.data_file = "robot_data.json"
         self.start_time = time.time()
