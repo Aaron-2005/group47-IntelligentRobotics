@@ -47,4 +47,4 @@ while robot.step(timestep) != -1:
         }
 
     # Send data back to rescue team
-comm.send(robot_data, survivors, map_data)
+    comm.send(robot_data, survivors, map_data)
