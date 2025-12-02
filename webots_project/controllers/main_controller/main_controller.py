@@ -1,24 +1,24 @@
+# main_controller.py
+
 from controller import Robot
 import navigation
 import mapping
 import detection
-from gui_window import GUIWindow
-from communication import Communication
+import communication
 
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
 
-gui = GUIWindow()
-comm = Communication(gui)
-
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
+comm = communication.Communication(robot)
 
 nav.detect = detector
 detector.nav = nav
 
 while robot.step(timestep) != -1:
+
     map_module.update()
     survivors = detector.detect()
     nav.move()
@@ -34,6 +34,8 @@ while robot.step(timestep) != -1:
         "obstacle_detected": nav.obstacle_detected(),
         "battery": 85,
         "velocity": 0.5,
+        "left_speed": nav.left_speed if hasattr(nav, "left_speed") else 0,
+        "right_speed": nav.right_speed if hasattr(nav, "right_speed") else 0,
         "lidar_data": []
     }
 
