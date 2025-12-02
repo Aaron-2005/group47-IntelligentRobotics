@@ -20,39 +20,36 @@ detector.nav = nav
 
 gui = GUIWindow()
 
-def run_gui():
-    gui.run()
+def robot_loop():
+    while robot.step(timestep) != -1:
+        map_module.update()
+        survivors = detector.detect()
+        nav.move()
 
-gui_thread = threading.Thread(target=run_gui)
-gui_thread.daemon = True
-gui_thread.start()
+        left_speed = nav.left_motor.getVelocity()
+        right_speed = nav.right_motor.getVelocity()
+        nav.left_speed = left_speed
+        nav.right_speed = right_speed
 
-while robot.step(timestep) != -1:
-    map_module.update()
-    survivors = detector.detect()
-    nav.move()
+        robot_data = {
+            "position": {
+                "x": nav.x,
+                "y": nav.y,
+                "theta": nav.theta
+            },
+            "navigation_state": nav.state,
+            "goal_position": nav.goal,
+            "obstacle_detected": nav.obstacle_detected(),
+            "battery": 85,
+            "velocity": 0.5,
+            "left_speed": left_speed,
+            "right_speed": right_speed,
+            "lidar_data": []
+        }
 
-    left_speed = nav.left_motor.getVelocity()
-    right_speed = nav.right_motor.getVelocity()
-    nav.left_speed = left_speed
-    nav.right_speed = right_speed
+        comm.send(robot_data, survivors, map_module.map_data)
+        gui.update_data(robot_data, survivors)
+        time.sleep(0.02)
 
-    robot_data = {
-        "position": {
-            "x": nav.x,
-            "y": nav.y,
-            "theta": nav.theta
-        },
-        "navigation_state": nav.state,
-        "goal_position": nav.goal,
-        "obstacle_detected": nav.obstacle_detected(),
-        "battery": 85,
-        "velocity": 0.5,
-        "left_speed": left_speed,
-        "right_speed": right_speed,
-        "lidar_data": []
-    }
-
-    comm.send(robot_data, survivors, map_module.map_data)
-    gui.update_data(robot_data, survivors)
-    time.sleep(0.02)
+threading.Thread(target=robot_loop, daemon=True).start()
+gui.run()
