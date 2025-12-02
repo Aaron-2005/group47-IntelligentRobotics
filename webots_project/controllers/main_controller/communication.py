@@ -3,6 +3,8 @@
 import json
 import time
 import math
+import webbrowser
+import os
 
 
 class Communication:
@@ -149,4 +151,10 @@ def test_communication_system():
 
 
 if __name__ == "__main__":
+
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    file_url = "file:///" + os.path.join(base_path, "index.html").replace("\\", "/")
+    webbrowser.open(file_url)
+
+
     test_communication_system()
