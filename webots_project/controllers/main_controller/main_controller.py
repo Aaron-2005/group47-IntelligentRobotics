@@ -1,52 +1,50 @@
-# main_controller.py
-# Group 47 - Intelligent Robotics
+from controller import Robot, GPS, InertialUnit, Compass
+import math
+from communication import Communication
+from gui_window import GUIWindow
 
-from controller import Robot
-import navigation
-import mapping
-import detection
-import communication
-
-# Initialize Webots robot
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
 
-# Initialize modules
-nav = navigation.Navigation(robot, timestep)
-map_module = mapping.Mapping(robot)
-detector = detection.Detection(robot)
-comm = communication.Communication(robot)
+gps = robot.getDevice("gps")
+gps.enable(timestep)
 
-# Link modules
-nav.detect = detector
-detector.nav = nav
+imu = robot.getDevice("inertial_unit")
+imu.enable(timestep)
 
-# ----- MAIN LOOP -----
+compass = robot.getDevice("compass")
+compass.enable(timestep)
+
+left_motor = robot.getDevice("left wheel motor")
+right_motor = robot.getDevice("right wheel motor")
+left_motor.setPosition(float('inf'))
+right_motor.setPosition(float('inf'))
+left_motor.setVelocity(0)
+right_motor.setVelocity(0)
+
+comm = Communication()
+gui = GUIWindow()
+
 while robot.step(timestep) != -1:
 
-    # 1. Update map
-    map_module.update()
+    position = gps.getValues()
+    imu_data = imu.getRollPitchYaw()
+    compass_data = compass.getValues()
 
-    # 2. Detect survivors
-    survivors = detector.detect()
+    x = position[0]
+    y = position[2]
+    yaw = imu_data[2]
 
-    # 3. Navigation update
-    nav.move()
+    left_speed = 2.0
+    right_speed = 2.0
+    left_motor.setVelocity(left_speed)
+    right_motor.setVelocity(right_speed)
 
-    # 4. Robot state report
-    robot_data = {
-        "position": {
-            "x": nav.x,
-            "y": nav.y,
-            "theta": nav.theta
-        },
-        "navigation_state": nav.state,
-        "goal_position": nav.goal,
-        "obstacle_detected": nav.obstacle_detected(),
-        "battery": 85,
-        "velocity": 0.5,
-        "lidar_data": []
+    data = {
+        "position": {"x": x, "y": y},
+        "orientation": yaw,
+        "motor": {"left": left_speed, "right": right_speed}
     }
 
-    # 5. SEND DATA TO UI (Correct map variable)
-    comm.send(robot_data, survivors, map_module.map_data)
+    comm.update_data(data)
+    gui.update(data)
