@@ -127,7 +127,7 @@ class Detection:
             for past_x, past_z in self.past_coordinates:
                 dx = x - past_x
                 dz = z - past_z
-                if math.sqrt(dx*dx + dz*dz) < 0.1:   
+                if math.sqrt(dx*dx + dz*dz) < 1:   
                     too_close = True
                     break
     
