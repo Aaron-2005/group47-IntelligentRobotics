@@ -15,7 +15,7 @@ class Navigation:
         self.timestep = timestep
 
         # Set tolerance for how close to goal
-        self.goal_tolerance = 0.2
+        self.goal_tolerance = 0.3
 
         self.detect = None
         

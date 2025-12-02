@@ -108,11 +108,13 @@ class Detection:
                print("Scan finished.")
                coords = self.calculate_coordinates(self.detected_angles,self.final_distances)
                print(coords)
-               closest_human = list(coords[0])
-               self.past_coordinates.append(coords[0])
                if coords:
+                   closest_human = list(coords[0])
+                   self.past_coordinates.append(coords[0])
                    self.nav.reset(new_goal=(closest_human[0], closest_human[1]))
-                   print("Goal inside main loop:", self.nav.goal)    
+                   print("Goal inside main loop:", self.nav.goal)  
+               else:
+                   print("All humans reached")  
        else:
            self.nav.resume()
        return []
