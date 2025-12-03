@@ -149,8 +149,10 @@ class GUIWindow:
             self.ax.imshow(blank, cmap="gray", origin="lower")
         else:
             display_img = self.map_image
-            norm = (display_img - np.min(display_img)) if np.max(display_img) != np.min(display_img) else display_img
-            self.ax.imshow(display_img, cmap="gray", origin="lower")
+            if np.max(display_img) != np.min(display_img):
+                self.ax.imshow(display_img, cmap="gray", origin="lower")
+            else:
+                self.ax.imshow(display_img, cmap="gray", origin="lower")
         if self.latest:
             rx = int(round(self.latest["position"]["x"] / self.map_resolution + (self._get_map_size()[0]//2)))
             ry = int(round(-(self.latest["position"]["y"] / self.map_resolution) + (self._get_map_size()[1]//2)))
