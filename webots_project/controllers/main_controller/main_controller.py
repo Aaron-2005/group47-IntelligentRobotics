@@ -3,13 +3,14 @@ import navigation
 import mapping
 import detection
 import communication
-from gui_window import RobotGUI
+from gui_window import GUIWindow
 import threading
+import time
 
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
 
-gui = RobotGUI()
+gui = GUIWindow()
 threading.Thread(target=gui.run, daemon=True).start()
 
 nav = navigation.Navigation(robot, timestep)
@@ -23,21 +24,26 @@ detector.nav = nav
 while robot.step(timestep) != -1:
 
     map_module.update()
+
     survivors = detector.detect()
+
     nav.move()
 
     robot_data = {
+        "timestamp": time.time(),
         "position": {
             "x": nav.x,
             "y": nav.y,
             "theta": nav.theta
         },
-        "navigation_state": nav.state,
-        "goal_position": nav.goal,
-        "obstacle_detected": nav.obstacle_detected(),
+        "navigation": {
+            "state": nav.state,
+            "goal": nav.goal,
+            "obstacle": nav.obstacle_detected()
+        },
         "battery": 85,
-        "velocity": 0.5,
-        "lidar_data": []
+        "velocity": nav.current_speed if hasattr(nav, "current_speed") else 0.5,
+        "lidar": map_module.lidar_raw if hasattr(map_module, "lidar_raw") else []
     }
 
     gui.update_robot_state(robot_data)
