@@ -17,7 +17,6 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 
-# FLOOR 3× (was 7, now 4.2)
 DEF FLOOR Solid {
   children [
     DEF FLOOR_SHAPE Shape {

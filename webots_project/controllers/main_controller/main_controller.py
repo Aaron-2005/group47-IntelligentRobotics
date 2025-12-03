@@ -1,49 +1,35 @@
-# main_controller.py
-# Group 47 - Intelligent Robotics
-# Main controller for disaster response robot
-# This integrates mapping, navigation, detection, and communication modules
-
 from controller import Robot
 import navigation
 import mapping
 import detection
 import communication
+import threading
+import time
+import os
 
-# Create the Robot instance
 robot = Robot()
-
-# Get the simulation time step (ms)
 timestep = int(robot.getBasicTimeStep())
-# Initialize modules
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
 comm = communication.Communication(robot)
-
 nav.detect = detector
 detector.nav = nav
-# Main control loop
 while robot.step(timestep) != -1:
-    # Update map
     map_module.update()
-
-    # Detect survivors
     survivors = detector.detect()
     nav.move()
 
     robot_data = {
-           "position": {
-               "x": nav.x,
-               "y": nav.y,
-               "theta": nav.theta
-           },
-            "navigation_state": nav.state,
-            "goal_position": nav.goal,
-            "obstacle_detected": nav.obstacle_detected(),
-            "battery": 85,
-            "velocity": 0.5,
-            "lidar_data": []
-        }
+        "timestamp": time.time(),
+        "position": {
+            "x": nav.x,
+            "y": nav.y,
+            "theta": nav.theta
+        },
+        "status": nav.state,
+        "battery": 85,
+        "velocity": nav.max_speed
+    }
 
-    # Send data back to rescue team
-comm.send(map_module.map_data, survivors)
+    comm.send(robot_data, survivors, map_module.map_data)
