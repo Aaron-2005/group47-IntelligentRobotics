@@ -9,15 +9,12 @@ import time
 
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
-
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
 comm = communication.Communication(robot)
-
 nav.detect = detector
 detector.nav = nav
-
 gui = GUIWindow()
 
 def robot_loop():
@@ -25,12 +22,10 @@ def robot_loop():
         map_module.update()
         survivors = detector.detect()
         nav.move()
-
         left_speed = nav.left_motor.getVelocity()
         right_speed = nav.right_motor.getVelocity()
         nav.left_speed = left_speed
         nav.right_speed = right_speed
-
         robot_data = {
             "position": {
                 "x": nav.x,
@@ -46,9 +41,21 @@ def robot_loop():
             "right_speed": right_speed,
             "lidar_data": []
         }
-
         comm.send(robot_data, survivors, map_module.map_data)
-        gui.update_data(robot_data, survivors)
+        gui.update_data(robot_data, survivors, map_module.map_data)
+        if gui.desired_goal is not None:
+            try:
+                nav.reset(new_goal=tuple(gui.desired_goal))
+            except:
+                pass
+            gui.desired_goal = None
+        if gui.paused:
+            nav.pause()
+        else:
+            nav.resume()
+        if gui.stopped:
+            nav.pause()
+            gui.stopped = False
         time.sleep(0.02)
 
 threading.Thread(target=robot_loop, daemon=True).start()
