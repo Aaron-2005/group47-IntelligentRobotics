@@ -22,10 +22,16 @@ def robot_loop():
         map_module.update()
         survivors = detector.detect()
         nav.move()
-        left_speed = nav.left_motor.getVelocity()
-        right_speed = nav.right_motor.getVelocity()
-        nav.left_speed = left_speed
-        nav.right_speed = right_speed
+        left_speed = getattr(nav, "left_speed", None)
+        right_speed = getattr(nav, "right_speed", None)
+        try:
+            left_speed = nav.left_motor.getVelocity()
+            right_speed = nav.right_motor.getVelocity()
+            nav.left_speed = left_speed
+            nav.right_speed = right_speed
+        except:
+            left_speed = left_speed if left_speed is not None else 0
+            right_speed = right_speed if right_speed is not None else 0
         robot_data = {
             "position": {
                 "x": nav.x,
@@ -37,12 +43,18 @@ def robot_loop():
             "obstacle_detected": nav.obstacle_detected(),
             "battery": 85,
             "velocity": 0.5,
-            "left_speed": left_speed,
-            "right_speed": right_speed,
+            "left_speed": left_speed or 0,
+            "right_speed": right_speed or 0,
             "lidar_data": []
         }
-        comm.send(robot_data, survivors, map_module.map_data)
-        gui.update_data(robot_data, survivors, map_module.map_data)
+        try:
+            comm.send(robot_data, survivors, map_module.map_data)
+        except:
+            pass
+        try:
+            gui.update_data(robot_data, survivors, map_module.map_data)
+        except:
+            pass
         if gui.desired_goal is not None:
             try:
                 nav.reset(new_goal=tuple(gui.desired_goal))
