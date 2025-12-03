@@ -21,7 +21,19 @@ class Detection:
         self.humans = {}
         self.next_human_id = 0
         self.passed_zero = False
-        self.past_coordinates = []
+        self.past_coordinates = []            
+        self.camera_height = 0.36         
+        self.target_height = 0.1   
+        self.camera_pitch = 0.15       
+        self.h_fov = self.camera.getFov()  
+        self.image_width = self.camera.getWidth()
+        self.image_height = self.camera.getHeight()
+        self.image_center_x = self.image_width / 2.0
+        self.image_center_y = self.image_height / 2.0
+# compute vertical FOV from aspect ratio:
+        self.v_fov = 2.0 * math.atan(math.tan(self.h_fov / 2.0) * (self.image_height / self.image_width))
+        self.pixel_angle_horizontal = self.h_fov / self.image_width
+        self.pixel_angle_vertical   = self.v_fov / self.image_height
         print("Detection module initialized")
 
     def reset_scan(self):
@@ -37,7 +49,7 @@ class Detection:
            self.start_angle = self.camera_sensor.getValue()
        image = self.camera.getImage()
        if not self.scan_done: 
-           self.camera_motor.setVelocity(1.0)
+           self.camera_motor.setVelocity(0.5)
            self.camera_motor.setPosition(float('inf'))
        if image is None:
            print("No camera image yet")
@@ -57,44 +69,55 @@ class Detection:
        mask_warm = cv2.inRange(hsv, lower_warm1, upper_warm1) | cv2.inRange(hsv, lower_warm2, upper_warm2)
        contours, _ = cv2.findContours(mask_warm, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
        valid_contours = [c for c in contours if cv2.contourArea(c) > 200]
-       FOV = 1.047  
-       IMAGE_WIDTH = 640
-       PIXEL_ANGLE = FOV / IMAGE_WIDTH
-       HUMAN_WIDTH = 0.2
-       IMAGE_CENTER = 320
-       CENTER_TOLERANCE = 40
        seen_ids = []
        camera_angle = self.camera_motor.getPositionSensor().getValue()
-       angle = camera_angle % ( 2 * math.pi)
        for c in valid_contours:
            x, y, w, h = cv2.boundingRect(c)
            cx = x + w/2 # center x of contour 
-           object_angle = w * PIXEL_ANGLE
-           if w > 0:
-               distance = HUMAN_WIDTH / (2 * math.tan(object_angle / 2)) #Formula to work out distance Found online
+           cy = y + h/2
+           #Horizontal
+           pixel_offset_x = (cx - self.image_center_x)
+           object_angle = pixel_offset_x * self.pixel_angle_horizontal          # angle of object relative to camera forward
+           true_angle = (camera_angle + object_angle + math.pi) % (2 * math.pi) - math.pi
+           # global angle to the object
+           #Veritcal
+           cy = y + h/2
+           pixel_offset_y = cy - self.image_center_y
+           vertical_angle_pixel = pixel_offset_y * self.pixel_angle_vertical
+           vertical_baseline = self.camera_height - self.target_height
+           if vertical_baseline <= 0:      # object appears above horizon
+               continue 
+           vertical_angle_total = self.camera_pitch + vertical_angle_pixel
+           if vertical_angle_total <= 0:
+               continue
+           distance = vertical_baseline / math.tan(vertical_angle_total)
+           if distance <= 0:      # object appears above horizon
+               continue   
            matched_id = None 
            for hid, data in self.humans.items(): 
                if abs(cx - data["last_x"]) < 60: # ~60 px tolerance 
                    matched_id = hid 
            if matched_id is None and distance > 0.25: 
                matched_id = self.next_human_id 
-               self.humans[matched_id] = {  #Dictionary of humans at the distances and angle we save them at
-               "last_x": cx, 
-               "distances": [],
-               "angle_saved": False,
-               } 
+               self.humans[matched_id] = {
+                   "last_x": cx,
+                   "angle_samples": [],
+                   "distance_samples": [],
+                   "angle_saved": False,
+               }
                self.next_human_id += 1
            human = self.humans[matched_id]
            human["last_x"] = cx
-           if "min_distance" not in human:
-               human["min_distance"] = distance
-           else:
-               human["min_distance"] = min(human["min_distance"], distance)  #Only save the lowest distance so check between us and our current self
-           if not human["angle_saved"]:
-               if abs(cx - IMAGE_CENTER) <= CENTER_TOLERANCE:  #Checks when the object is in the middle so that we can get the best theta and angle  
-                   self.detected_angles.append(angle)
-                   human["angle_saved"] = True
-                   self.final_distances.append(human["min_distance"])
+           if not human["angle_saved"]:               
+               if abs(cx - self.image_center_x) <= 40:  #Checks when the object is in the middle so that we can get the best theta and angle  
+                   human["angle_samples"].append(true_angle)
+                   human["distance_samples"].append(distance)
+                   if len(human["angle_samples"]) >= 6:
+                       avg_angle = sum(human["angle_samples"]) / len(human["angle_samples"])
+                       avg_dist  = sum(human["distance_samples"]) / len(human["distance_samples"])
+                       self.detected_angles.append(avg_angle)
+                       self.final_distances.append(avg_dist)
+                       human["angle_saved"] = True
        cv2.imshow("TurtleBot RGB Camera", frame)
        cv2.waitKey(1)
        cv2.imshow("Warm Colors", mask_warm)  # show color mask
@@ -106,17 +129,20 @@ class Detection:
                self.camera_motor.setVelocity(0)
                self.scan_done = True
                print("Scan finished.")
+               print("distance:", self.final_distances, "angle:", self.detected_angles)
                coords = self.calculate_coordinates(self.detected_angles,self.final_distances)
                print(coords)
                if coords:
                    closest_human = list(coords[0])
                    self.past_coordinates.append(coords[0])
                    self.nav.reset(new_goal=(closest_human[0], closest_human[1]))
-                   print("Goal inside main loop:", self.nav.goal)  
                else:
                    print("All humans reached")  
-       else:
+       else:       
            self.nav.resume()
+           coverage = np.sum(mask_warm > 0) / (self.image_width * self.image_height)
+           if coverage >= 0.15:
+               self.nav.goalreached = True
        return []
     def calculate_coordinates(self, anglelist, distancelist):
         coords = []
@@ -129,7 +155,7 @@ class Detection:
             for past_x, past_z in self.past_coordinates:
                 dx = x - past_x
                 dz = z - past_z
-                if math.sqrt(dx*dx + dz*dz) < 1:   
+                if math.sqrt(dx*dx + dz*dz) < 0.5:   
                     too_close = True
                     break
     

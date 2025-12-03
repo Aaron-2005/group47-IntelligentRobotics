@@ -15,7 +15,7 @@ class Navigation:
         self.timestep = timestep
 
         # Set tolerance for how close to goal
-        self.goal_tolerance = 0.3
+        self.goal_tolerance = 0.25
 
         self.detect = None
         
@@ -70,7 +70,7 @@ class Navigation:
         self.c = xs *yg - xg * ys
 
         #Parameter for how far from line to be considered on the line
-        self.mline_tolerance = 0.10
+        self.mline_tolerance = 0.15
 
         # Normalise M-line coefficients for better distance calculation
         norm = math.sqrt(self.a**2 + self.b**2)
@@ -83,17 +83,18 @@ class Navigation:
         # Where we first hit the obstacle
         self.hit_point = None
         # How far to be considered obstacle
-        self.obs_threshold = 0.15
-        self.clearance_threshold = 0.35
+        self.obs_threshold = 0.45
+        self.clearance_threshold = 0.55
 
         # Wall following parameters
         self.follow_side = None
         # Distance from wall
-        self.target_distance = 0.2
+        self.target_distance = 0.35
         self.wall_follow_speed = 1.2
         #Pause
         self.paused = False
         self.just_reset = 0
+        self.goalreached = False
         print("nav complete")
 
     # Update odometry values from encoder increments
@@ -270,10 +271,11 @@ class Navigation:
         self.update_odometry()
         print("Distance from goal", self.distance_to_goal())
             # Check if we have reached the goal
-        if self.distance_to_goal() < self.goal_tolerance:
+        if self.distance_to_goal() < self.goal_tolerance or (self.goalreached == True and self.distance_to_goal() < 5 * self.goal_tolerance):
             self.left_motor.setVelocity(0)
             self.right_motor.setVelocity(0)
             print("Goal reached")
+            self.goalreached = False
             self.detect.reset_scan()
             self.reset()
             return

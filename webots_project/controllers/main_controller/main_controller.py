@@ -22,7 +22,6 @@ comm = communication.Communication(robot)
 
 nav.detect = detector
 detector.nav = nav
-
 # Main control loop
 while robot.step(timestep) != -1:
     # Update map

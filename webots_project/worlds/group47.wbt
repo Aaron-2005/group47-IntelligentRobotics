@@ -9,13 +9,15 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.5773502691896258 0.5773502691896258 0.5773502691896258 2.0944
-  position 2.444003704228259e-06 2.444010614599593e-06 3.4371617753949253
+  orientation -0.564862634547823 0.4908425908838637 0.6633277885526192 2.095818902119859
+  position 0.64242116770508 -2.844847814165946 16.138066165629898
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
+
+# FLOOR 3× (was 7, now 4.2)
 DEF FLOOR Solid {
   children [
     DEF FLOOR_SHAPE Shape {
@@ -25,7 +27,7 @@ DEF FLOOR Solid {
         metalness 0
       }
       geometry Plane {
-        size 1.4 1.4
+        size 4.2 4.2
       }
     }
   ]
@@ -33,6 +35,8 @@ DEF FLOOR Solid {
   boundingObject USE FLOOR_SHAPE
   locked TRUE
 }
+
+# BORDER 3× (was 9, now 5.4)
 DEF FLOOR_BORDER Solid {
   translation 0 0 -0.001
   children [
@@ -43,11 +47,13 @@ DEF FLOOR_BORDER Solid {
         metalness 0
       }
       geometry Plane {
-        size 1.8 1.8
+        size 5.4 5.4
       }
     }
   ]
 }
+
+# WALLS 3×
 DEF WALL Solid {
   children [
     Shape {
@@ -59,100 +65,121 @@ DEF WALL Solid {
       geometry DEF WALL_GEOMETRY IndexedFaceSet {
         coord Coordinate {
           point [
-            -0.9 -0.9 0
-            0.9 -0.9 0
-            0.9 0.9 0
-            -0.9 0.9 0
-            -0.9 0.89 0
-            0.89 0.89 0
-            0.89 -0.89 0
-            -0.89 -0.89 0
-            -0.89 0.89 0
-            -0.9 0.89 0
-            -0.9 -0.9 0
-            -0.9 -0.9 0.3
-            0.9 -0.9 0.3
-            0.9 0.9 0.3
-            -0.9 0.9 0.3
-            -0.9 0.89 0.3
-            0.89 0.89 0.3
-            0.89 -0.89 0.3
-            -0.89 -0.89 0.3
-            -0.89 0.89 0.3
-            -0.9 0.89 0.3
-            -0.9 -0.9 0.3
+            -2.7 -2.7 0
+            2.7 -2.7 0
+            2.7 2.7 0
+            -2.7 2.7 0
+
+            -2.7 2.67 0
+            2.67 2.67 0
+            2.67 -2.67 0
+            -2.67 -2.67 0
+            -2.67 2.67 0
+            -2.7 2.67 0
+            -2.7 -2.7 0
+
+            -2.7 -2.7 0.3
+            2.7 -2.7 0.3
+            2.7 2.7 0.3
+            -2.7 2.7 0.3
+
+            -2.7 2.67 0.3
+            2.67 2.67 0.3
+            2.67 -2.67 0.3
+            -2.67 -2.67 0.3
+            -2.67 2.67 0.3
+            -2.7 2.67 0.3
+            -2.7 -2.7 0.3
           ]
         }
+
         coordIndex [
-          10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, -1, 0, 1, 12, 11, -1, 1, 2, 13, 12, -1, 2, 3, 14, 13, -1, 3, 4, 15, 14, -1, 4, 5, 16, 15, -1, 5, 6, 17, 16, -1, 6, 7, 18, 17, -1, 7, 8, 19, 18, -1, 8, 9, 20, 19, -1, 9, 10, 21, 20, -1
+          10,9,8,7,6,5,4,3,2,1,0,-1,
+          11,12,13,14,15,16,17,18,19,20,21,-1,
+          0,1,12,11,-1,
+          1,2,13,12,-1,
+          2,3,14,13,-1,
+          3,4,15,14,-1,
+          4,5,16,15,-1,
+          5,6,17,16,-1,
+          6,7,18,17,-1,
+          7,8,19,18,-1,
+          8,9,20,19,-1,
+          9,10,21,20,-1
         ]
       }
     }
   ]
+
   name "wall"
+
   boundingObject Group {
     children [
+
+      # bottom wall (was 4.45 → now 2.67)
       Pose {
-        translation 0 -0.89 0.15
+        translation 0 -2.67 0.15
         children [
           DEF WALL_SHAPE Shape {
             appearance USE WALL_APPEARANCE
             geometry Box {
-              size 1.8 0.01 0.3
+              size 5.4 0.01 0.3
             }
           }
         ]
       }
+
       Pose {
-        translation 0 0.89 0.15
-        children [
-          USE WALL_SHAPE
-        ]
+        translation 0 2.67 0.15
+        children [ USE WALL_SHAPE ]
       }
+
       Pose {
-        translation -0.89 0 0.15
+        translation -2.67 0 0.15
         rotation 0 0 1 1.57
-        children [
-          USE WALL_SHAPE
-        ]
+        children [ USE WALL_SHAPE ]
       }
+
       Pose {
-        translation 0.89 0 0.15
+        translation 2.67 0 0.15
         rotation 0 0 1 1.57
-        children [
-          USE WALL_SHAPE
-        ]
+        children [ USE WALL_SHAPE ]
       }
     ]
   }
+
   locked TRUE
 }
+
+# BOXES (unchanged)
 SolidBox {
-  translation 0.0328162 -0.670802 0.1
-  size 0.2 0.2 0.2
-}
-SolidBox {
-  translation -0.754196 1.1788 0.1
+  translation 0.5 1 0.1
+  rotation 0 0 1 1.5708
   name "box(1)"
   size 0.2 0.2 0.2
+  appearance PBRAppearance {
+    baseColor 1 0 0
+    roughness 1
+    metalness 0
+  }
 }
+
 SolidBox {
-  translation 0.63859 0.703544 0.1
-  rotation 0 1 0 4.692820414042842e-06
+  translation -2.9 -1.29001 0.1
+  rotation 0 0 1 1.5708
   name "box(2)"
   size 0.2 0.2 0.2
+  appearance PBRAppearance {
+    baseColor 1 0 0
+    roughness 1
+    metalness 0
+  }
 }
+
+# ROBOT (unchanged)
 TurtleBot3Burger {
-  hidden position_0_1 4.29311054678453e-11
-  hidden position_0_2 2.8562245877042585e-11
-  hidden position_0_3 -4.467425961062264e-07
-  hidden position2_0_3 8.108044299863916e-05
-  hidden position3_0_3 -1.0229036472776856e-08
-  hidden rotation_12 0 -1 0 1.5707959998855134
-  hidden rotation_13 -0.7071047815680729 1.2627112709005276e-15 -0.7071087807993677 3.141588
-  hidden rotation_14 -0.005509790146127881 0.9999848130049273 -0.0001263805611922265 8.108167514145879e-05
-  translation -0.6291947674262529 -0.02062623367957491 -0.0002477392059892017
-  rotation -0.00017782740617794965 -0.7766227702113513 0.6299659047652185 0.005977096704744467
+  translation 0 0 0
+  rotation 0 0 1 0
   controller "main_controller"
   extensionSlot [
     RobotisLds01 {
@@ -165,7 +192,7 @@ TurtleBot3Burger {
     }
     HingeJoint {
       jointParameters HingeJointParameters {
-        position 19.008000000000017
+        position 44.17023999999726
         axis 0 0 1
         anchor 0 0 0.18
       }
@@ -179,7 +206,7 @@ TurtleBot3Burger {
       ]
       endPoint Solid {
         translation 0 0 0.18
-        rotation 0 0 -1 6.12474122871833
+        rotation -0.014472692250146819 0.9811691893084558 0.1926072769415016 0.1528677378923613
         children [
           Camera {
             name "rgb_camera"
