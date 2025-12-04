@@ -36,5 +36,5 @@ while robot.step(timestep) != -1:
 import subprocess, sys, os
 
 if __name__ == "__main__":
-    gui_path = os.path.join(os.path.dirname(__file__), "gui_window.py")
-    subprocess.Popen([sys.executable, gui_path])
+    gui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "gui_window.py"))
+    subprocess.Popen(f"\"{sys.executable}\" \"{gui_path}\"", shell=True)
