@@ -2,7 +2,8 @@ from controller import Robot
 from navigation import Navigation
 from detection import Detection
 from communication import Communication
-from gui_window import GUIWindow
+from robot_gui import RescueGUI 
+
 import threading
 import time
 
@@ -15,8 +16,8 @@ com = Communication("robot_data.json")
 
 nav.detect = det
 
-gui = GUIWindow()
-gui.start_in_thread()
+gui = RescueGUI()
+threading.Thread(target=gui.run, daemon=True).start()
 
 last_send = time.time()
 
@@ -33,9 +34,7 @@ while robot.step(timestep) != -1:
         "map": []
     }
 
-    gui.update(data)
-
     now = time.time()
     if now - last_send > 0.5:
-        com.send(data)
+        com.send(data, det.survivors, [])
         last_send = now
