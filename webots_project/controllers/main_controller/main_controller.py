@@ -1,64 +1,41 @@
-import os
-import sys
-import time
-import json
+from controller import Robot
+from navigation import Navigation
+from detection import Detection
+from communication import Communication
+from gui_window import GUIWindow
 import threading
-import webbrowser
+import time
 
-from controller import Supervisor
+robot = Robot()
+timestep = int(robot.getBasicTimeStep())
 
-from navigation import NavigationModule
-from detection import DetectionModule
-from mapping import MappingModule
-from data_logger import DataLogger
+nav = Navigation(robot, timestep)
+det = Detection(robot, timestep)
+com = Communication("robot_data.json")
 
+nav.detect = det
 
-class RescueRobotController:
-    def __init__(self):
-        self.robot = Supervisor()
-        self.timestep = int(self.robot.getBasicTimeStep())
+gui = GUIWindow()
+gui.start_in_thread()
 
-        self.navigation = NavigationModule(self.robot)
-        self.detection = DetectionModule(self.robot)
-        self.mapping = MappingModule(self.robot)
+last_send = time.time()
 
-        self.data_logger = DataLogger()
+while robot.step(timestep) != -1:
+    det.scan()
+    nav.move()
 
-        # 自动打开浏览器（延迟 1 秒）
-        threading.Timer(1.0, lambda: webbrowser.open_new("http://localhost:8000")).start()
+    data = {
+        "state": nav.state,
+        "battery": 85,
+        "position": [nav.x, nav.y],
+        "theta": nav.theta,
+        "survivors": det.survivors,
+        "map": []
+    }
 
-        self.start_time = time.time()
+    gui.update(data)
 
-    def step(self):
-        return self.robot.step(self.timestep)
-
-    def main_loop(self):
-        print("nav complete")
-        print("Detection module initialized")
-
-        while True:
-            if self.step() == -1:
-                break
-
-            robot_pose = self.navigation.get_pose()
-            if robot_pose is None:
-                print("Pose became invalid, resetting.")
-                self.navigation.reset_pose()
-                continue
-
-            detections = self.detection.detect()
-            self.mapping.update(robot_pose, detections)
-
-            state = self.navigation.update()
-
-            self.data_logger.log({
-                "state": state,
-                "pose": robot_pose,
-                "detections": detections,
-                "map": self.mapping.get_map()
-            })
-
-
-if __name__ == "__main__":
-    controller = RescueRobotController()
-    controller.main_loop()
+    now = time.time()
+    if now - last_send > 0.5:
+        com.send(data)
+        last_send = now
