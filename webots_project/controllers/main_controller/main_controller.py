@@ -1,40 +1,64 @@
-from controller import Robot
-import navigation
-import mapping
-import detection
-import communication
-import threading
-import time
 import os
+import sys
+import time
+import json
+import threading
+import webbrowser
 
-robot = Robot()
-timestep = int(robot.getBasicTimeStep())
-nav = navigation.Navigation(robot, timestep)
-map_module = mapping.Mapping(robot)
-detector = detection.Detection(robot)
-comm = communication.Communication(robot)
-nav.detect = detector
-detector.nav = nav
-while robot.step(timestep) != -1:
-    map_module.update()
-    survivors = detector.detect()
-    nav.move()
+from controller import Supervisor
 
-    robot_data = {
-        "timestamp": time.time(),
-        "position": {
-            "x": nav.x,
-            "y": nav.y,
-            "theta": nav.theta
-        },
-        "status": nav.state,
-        "battery": 85,
-        "velocity": nav.max_speed
-    }
+from navigation import NavigationModule
+from detection import DetectionModule
+from mapping import MappingModule
+from data_logger import DataLogger
 
-    comm.send(robot_data, survivors, map_module.map_data)
-import subprocess, sys, os
+
+class RescueRobotController:
+    def __init__(self):
+        self.robot = Supervisor()
+        self.timestep = int(self.robot.getBasicTimeStep())
+
+        self.navigation = NavigationModule(self.robot)
+        self.detection = DetectionModule(self.robot)
+        self.mapping = MappingModule(self.robot)
+
+        self.data_logger = DataLogger()
+
+        # 自动打开浏览器（延迟 1 秒）
+        threading.Timer(1.0, lambda: webbrowser.open_new("http://localhost:8000")).start()
+
+        self.start_time = time.time()
+
+    def step(self):
+        return self.robot.step(self.timestep)
+
+    def main_loop(self):
+        print("nav complete")
+        print("Detection module initialized")
+
+        while True:
+            if self.step() == -1:
+                break
+
+            robot_pose = self.navigation.get_pose()
+            if robot_pose is None:
+                print("Pose became invalid, resetting.")
+                self.navigation.reset_pose()
+                continue
+
+            detections = self.detection.detect()
+            self.mapping.update(robot_pose, detections)
+
+            state = self.navigation.update()
+
+            self.data_logger.log({
+                "state": state,
+                "pose": robot_pose,
+                "detections": detections,
+                "map": self.mapping.get_map()
+            })
+
 
 if __name__ == "__main__":
-    gui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "gui_window.py"))
-    subprocess.Popen(f"\"{sys.executable}\" \"{gui_path}\"", shell=True)
+    controller = RescueRobotController()
+    controller.main_loop()
