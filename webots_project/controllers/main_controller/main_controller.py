@@ -33,3 +33,8 @@ while robot.step(timestep) != -1:
     }
 
     comm.send(robot_data, survivors, map_module.map_data)
+import subprocess, sys, os
+
+if __name__ == "__main__":
+    gui_path = os.path.join(os.path.dirname(__file__), "gui_window.py")
+    subprocess.Popen([sys.executable, gui_path])
