@@ -79,15 +79,26 @@ class RescueGUI:
             self.survivor_listbox.insert(tk.END,line)
 
     def update_map(self):
-        self.ax.clear()
-        self.ax.set_xlim(0,200)
-        self.ax.set_ylim(0,200)
-        self.ax.set_title("Robot Map")
-        self.ax.plot(self.robot_data.get("position",{}).get("x",0)*10,
-                     self.robot_data.get("position",{}).get("y",0)*10,"ro",markersize=6,label="Robot")
-        for s in self.survivors:
-            self.ax.plot(s.get("x",0)*10,s.get("y",0)*10,"go",markersize=5)
-        self.map_canvas.draw()
+    self.ax.clear()
+
+    self.ax.set_xlim(-2.7, 2.7)
+    self.ax.set_ylim(-2.7, 2.7)
+    self.ax.set_title("Robot Map (meters)")
+
+    pos = self.robot_data.get("position", {})
+    rx = pos.get("x", 0)
+    ry = pos.get("y", 0)
+    self.ax.plot(rx, ry, "ro", markersize=6, label="Robot")
+
+    for s in self.survivors:
+        self.ax.plot(s.get("x", 0), s.get("y", 0), "go", markersize=5)
+
+    past = self.robot_data.get("past_survivors", [])
+    for x, y in past:
+        self.ax.plot(x, y, "bo", markersize=4)
+
+    self.map_canvas.draw()
+
 
     def quit(self):
         self.running = False
