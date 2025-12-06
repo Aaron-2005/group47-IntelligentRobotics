@@ -4,6 +4,9 @@ from controller import Camera
 import numpy as np
 import cv2
 import math
+
+coords = [] 
+
 class Detection:
     def __init__(self, robot):
         self.nav = None
@@ -130,6 +133,7 @@ class Detection:
                self.scan_done = True
                print("Scan finished.")
                print("distance:", self.final_distances, "angle:", self.detected_angles)
+               global coords
                coords = self.calculate_coordinates(self.detected_angles,self.final_distances)
                print(coords)
                if coords:
