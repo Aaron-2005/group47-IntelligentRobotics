@@ -7,20 +7,27 @@ import subprocess
 import sys
 import os
 import time
+
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
+
 try:
-    launch_path = os.path.join(os.path.dirname(__file__), "launch_gui.py")
-    if os.path.exists(launch_path):
-        subprocess.Popen([sys.executable, launch_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    gui_path = os.path.join(os.path.dirname(__file__), "robot_gui.py")
+    if os.path.exists(gui_path):
+        subprocess.Popen([sys.executable, gui_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 except Exception as e:
-    print("Could not start GUI launcher:", e)
+    print("Could not start GUI:", e)
+
 nav = navigation.Navigation(robot, timestep)
 map_module = mapping.Mapping(robot)
 detector = detection.Detection(robot)
 comm = communication.Communication(robot)
+
 nav.detect = detector
 detector.nav = nav
+
+last_send = time.time()
+
 while robot.step(timestep) != -1:
     try:
         map_module.update()
@@ -47,12 +54,15 @@ while robot.step(timestep) != -1:
         "goal_position": nav.goal,
         "obstacle_detected": nav.obstacle_detected() if hasattr(nav, "obstacle_detected") else False,
         "battery": 85,
-        "velocity": 0.5,
+        "velocity": nav.just_reset if hasattr(nav, "just_reset") else 0.5,
         "left_speed": left_speed,
         "right_speed": right_speed,
-        "lidar_data": []
+        "lidar_data": getattr(map_module, "lidar_raw", [])
     }
     try:
-        comm.send(robot_data, survivors, getattr(map_module, "map_data", []))
+        past_coords = getattr(detector, "past_coordinates", []) if hasattr(detector, "past_coordinates") else []
+        if time.time() - last_send > 0.2:
+            comm.send(robot_data, survivors, getattr(map_module, "map_data", []), past_coords)
+            last_send = time.time()
     except Exception as e:
         print("comm send error:", e)
