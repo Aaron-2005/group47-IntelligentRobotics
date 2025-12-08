@@ -1,0 +1,23 @@
+{
+  "timestamp": 1765224264.8857462,
+  "update_count": 25,
+  "robot": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "theta": 0.0,
+      "theta_degrees": 0.0
+    },
+    "battery": 85,
+    "status": "GO_TO_GOAL",
+    "velocity": 0,
+    "left_speed": 0.0,
+    "right_speed": 0.0
+  },
+  "survivors": [],
+  "mapping": {
+    "status": "active",
+    "map_size": "200x200"
+  },
+  "past_coordinates": []
+}

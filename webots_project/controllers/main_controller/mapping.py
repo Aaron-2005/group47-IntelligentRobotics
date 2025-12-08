@@ -188,7 +188,6 @@ class Mapping:
         coords = detection.coords
     
         if not coords:
-            print("No survivors detected yet")
             return
 
         # For each coordinate from detection.coords

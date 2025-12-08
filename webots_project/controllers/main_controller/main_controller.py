@@ -28,7 +28,7 @@ detector.nav = nav
 
 last_send = time.time()
 
-while robot.step(timestep) != -1:
+while robot.step(timestep) != -1 and detector.all_human_reached == False:
     try:
         map_module.update()
     except Exception as e:

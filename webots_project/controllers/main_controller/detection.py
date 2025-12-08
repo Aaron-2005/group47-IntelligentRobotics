@@ -33,6 +33,7 @@ class Detection:
         self.image_height = self.camera.getHeight()
         self.image_center_x = self.image_width / 2.0
         self.image_center_y = self.image_height / 2.0
+        self.all_human_reached = False
 # compute vertical FOV from aspect ratio:
         self.v_fov = 2.0 * math.atan(math.tan(self.h_fov / 2.0) * (self.image_height / self.image_width))
         self.pixel_angle_horizontal = self.h_fov / self.image_width
@@ -121,8 +122,6 @@ class Detection:
                        self.detected_angles.append(avg_angle)
                        self.final_distances.append(avg_dist)
                        human["angle_saved"] = True
-       cv2.imshow("TurtleBot RGB Camera", frame)
-       cv2.waitKey(1)
        cv2.imshow("Warm Colors", mask_warm)  # show color mask
        cv2.waitKey(1) 
        if not self.scan_done:
@@ -141,6 +140,7 @@ class Detection:
                    self.past_coordinates.append(coords[0])
                    self.nav.reset(new_goal=(closest_human[0], closest_human[1]))
                else:
+                   self.all_human_reached = True
                    print("All humans reached")  
        else:       
            self.nav.resume()
