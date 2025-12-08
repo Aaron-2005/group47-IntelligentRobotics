@@ -271,7 +271,7 @@ class Navigation:
         self.update_odometry()
         print("Distance from goal", self.distance_to_goal())
             # Check if we have reached the goal
-        if self.distance_to_goal() < self.goal_tolerance or (self.goalreached == True and self.distance_to_goal() < 5 * self.goal_tolerance):
+        if self.distance_to_goal() < self.goal_tolerance or (self.goalreached == True and self.distance_to_goal() < 3 * self.goal_tolerance):
             self.left_motor.setVelocity(0)
             self.right_motor.setVelocity(0)
             print("Goal reached")
