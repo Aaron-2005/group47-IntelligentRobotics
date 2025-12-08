@@ -16,8 +16,6 @@ class Navigation:
 
         # Set tolerance for how close to goal
         self.goal_tolerance = 0.25
-
-        self.detect = None
         
         # Get motor devices
         self.left_motor = robot.getDevice('left wheel motor')
@@ -190,7 +188,6 @@ class Navigation:
     def wall_follow(self):
         # Get lidar distances from full 360
         ranges = self.lidar.getRangeImage()
-        n = self.lidar_width
 
         # Split ranges into regions
         left_range = ranges[80:100]
@@ -212,7 +209,7 @@ class Navigation:
             closest_front = self.lidar_max
 
         # Decide which wall to follow
-        if self.follow_side is None or self.hit_point == (self.x, self.y):
+        if self.follow_side is None:
             if closest_left < closest_right:
                 self.follow_side = "LEFT"
             else:
@@ -253,6 +250,7 @@ class Navigation:
 
         return v_left, v_right
 
+    # Calculate distance to goal from current position
     def distance_to_goal(self):
         goal_x, goal_y = self.goal
 
@@ -260,6 +258,7 @@ class Navigation:
         dy = goal_y - self.y
         return math.sqrt(dx*dx + dy*dy)
 
+    # Main movement function, implements Bug2 logic
     def move(self):
         if self.paused:
             self.left_motor.setVelocity(0)
@@ -270,7 +269,7 @@ class Navigation:
         #Update pose
         self.update_odometry()
         print("Distance from goal", self.distance_to_goal())
-            # Check if we have reached the goal
+        # Check if we have reached the goal
         if self.distance_to_goal() < self.goal_tolerance or (self.goalreached == True and self.distance_to_goal() < 3 * self.goal_tolerance):
             self.left_motor.setVelocity(0)
             self.right_motor.setVelocity(0)
@@ -282,19 +281,15 @@ class Navigation:
 
         if self.state == "GO_TO_GOAL":
             # If obstacle appears ahead, switch to wall follow state
-            if self.just_reset > 0:
-                self.just_reset -= 1
-                v_left, v_right, rho = self.goto_position(*self.goal)
+            if self.obstacle_detected():
+                self.state = "WALL_FOLLOW"
+                self.hit_point = (self.x, self.y)
+                self.follow_side = None
+                print("Hit obstacle -> WALL_FOLLOW")
+                v_left, v_right = self.wall_follow()
             else:
-                if self.obstacle_detected():
-                    self.state = "WALL_FOLLOW"
-                    self.hit_point = (self.x, self.y)
-                    self.follow_side = None
-                    print("Hit obstacle -> WALL_FOLLOW")
-                    v_left, v_right = self.wall_follow()
-                else:
-                    # Continue towards goal
-                    v_left, v_right, rho = self.goto_position(*self.goal)
+                # Continue towards goal
+                v_left, v_right, rho = self.goto_position(*self.goal)
 
         elif self.state == "WALL_FOLLOW":
             # Compute distance from hit point to goal
@@ -317,7 +312,6 @@ class Navigation:
                 print("Back on M-line -> GO_TO_GOAL")
                 self.state = "GO_TO_GOAL"
                 self.follow_side = None
-                self.on_mline_count = 0
                 v_left, v_right, rho = self.goto_position(*self.goal)
             else:
                 # Continue to follow obstacle
@@ -328,6 +322,8 @@ class Navigation:
         self.right_motor.setVelocity(v_right)
 
         print(f"[{self.state}] x={self.x:.3f}, y={self.y:.3f}, theta={self.theta:.3f}")
+    
+    # Pause movement while scanning (Keep odometry tracking)
     def pause(self):
         self.paused = True
         self.left_motor.setVelocity(0)
@@ -336,6 +332,7 @@ class Navigation:
     def resume(self):
         self.paused = False
         
+    # Reset parameters for next goal
     def reset(self, new_goal=None):
     
         # Use current position as new start
@@ -348,10 +345,13 @@ class Navigation:
         # Recompute M-line ONLY IF goal exists
         if self.goal is not None:
             self.compute_m_line()
-        self.just_reset = int(1000 / self.timestep)
+            
+        # Unpause and proceed towards goal
         self.state = "GO_TO_GOAL"
         self.paused = False
         print(f"New goal set: {self.goal}. M-line defined.")
+        
+    # Compute new M-Line from new start position
     def compute_m_line(self):
         xs, ys = self.x,self.y
         xg, yg = self.goal
@@ -360,7 +360,7 @@ class Navigation:
         self.b = xg - xs
         self.c = xs * yg - xg * ys
     
-        # Normalize
+        # Normalise
         norm = math.sqrt(self.a**2 + self.b**2)
         if norm > 0:
             self.a /= norm
