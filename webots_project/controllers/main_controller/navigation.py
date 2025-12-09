@@ -81,7 +81,7 @@ class Navigation:
         # Where we first hit the obstacle
         self.hit_point = None
         # How far to be considered obstacle
-        self.obs_threshold = 0.45
+        self.obs_threshold = 0.30
         self.clearance_threshold = 0.55
 
         # Wall following parameters
@@ -188,11 +188,12 @@ class Navigation:
     def wall_follow(self):
         # Get lidar distances from full 360
         ranges = self.lidar.getRangeImage()
+        n = self.lidar_width
 
         # Split ranges into regions
-        left_range = ranges[80:100]
-        right_range = ranges[260:280]
-        front_range = ranges[170:190]
+        left_range = ranges[n // 4 : n // 2]
+        right_range = ranges[n // 2 : 3 * n // 4]
+        front_range = ranges[2 * n // 5 : 3 * n // 5]
 
         # Find closest object in each region
         if left_range:
@@ -223,7 +224,7 @@ class Navigation:
             # Find difference between desired wall distance
             # and current wall distance
             error = closest_right - self.target_distance
-            turn_correction = error * 6.0
+            turn_correction = error * 3.0
 
             # If there is an obstacle close, avoid it by
             # turning other way
@@ -260,11 +261,13 @@ class Navigation:
 
     # Main movement function, implements Bug2 logic
     def move(self):
+        
+        # Check if we need to pause for the scan
         if self.paused:
             self.left_motor.setVelocity(0)
             self.right_motor.setVelocity(0)
             return
-        
+            
         print(self.goal)
         #Update pose
         self.update_odometry()
