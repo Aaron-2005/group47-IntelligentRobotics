@@ -23,7 +23,7 @@ class Detection:
         self.camera.enable(timestep)                         
 
         self.start_angle = None              # The angle when scan starts
-        self.scan_done = False               # Checks whether a  full rotation is completed
+        self.scan_done = False               # Checks whether a full rotation is completed
         self.detected_angles = []            # Stored final angles of humans
         self.final_distances = []            # Stored final distances of humans
 
@@ -32,7 +32,7 @@ class Detection:
         self.past_coordinates = []           # Previously visited human coords
 
         self.camera_height = 0.36            # The height of the camera
-        self.target_height = 0.1             # Estimated height of warm object put as the cnter of the object
+        self.target_height = 0.1             # Estimated height of warm object put as the center of the object
         self.camera_pitch = 0.15             # Downward tilt angle in radians
 
         self.h_fov = self.camera.getFov()    # Horizontal field of view
@@ -42,19 +42,19 @@ class Detection:
         self.image_center_x = self.image_width / 2    # Horizontal mid pixel
         self.image_center_y = self.image_height / 2   # Vertical mid pixel
 
-        self.v_fov = 2.0 * math.atan(                 # Vertical field of view
+        self.v_fov = 2.0 * math.atan(                 
             math.tan(self.h_fov / 2) * (self.image_height / self.image_width)
         )
 
-        self.pixel_angle_horizontal = self.h_fov / self.image_width   # Angle per pixel horizontally
-        self.pixel_angle_vertical = self.v_fov / self.image_height    # Angle per pixel vertically
+        self.pixel_angle_horizontal = self.h_fov / self.image_width   
+        self.pixel_angle_vertical = self.v_fov / self.image_height    
 
-        self.all_human_reached = False     # Whether all detected humans visited
+        self.all_human_reached = False     
 
         print("Detection module initialized")
 
     def reset_scan(self):
-        #Restarts the detections reinitalises all the variable
+        # Restarts the detections reinitalises all the variable
         self.scan_done = False
         self.start_angle = None
         self.humans = {}
@@ -63,12 +63,13 @@ class Detection:
         self.final_distances = []
 
     def capture_frame(self):
-    #Reads the camera frame and converts it into an OpenCV BGR image
+        # Reads the camera frame and converts it into an OpenCV BGR image
         image = self.camera.getImage()
         if image is None:
             print("No camera image yet")
             return None
-        #Coverts the webots buffer and puts it as a NumPy Image
+
+        # Coverts the webots buffer and puts it as a NumPy Image
         arr = np.frombuffer(image, np.uint8).reshape(
             (self.image_height, self.image_width, 4)
         )
@@ -76,9 +77,10 @@ class Detection:
         return frame
 
     def detect_warm_targets(self, frame):
-        #Converts the frame to HSV then extracts the contour which is the red colored regions
+        # Converts the frame to HSV then extracts the contour which is the red colored regions
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        #Warm Color Threshold -> Between light red to dark red
+
+        # Warm Color Threshold -> Between light red to dark red
         lower_warm1 = np.array([0, 160, 120])
         upper_warm1 = np.array([20, 255, 255])
         lower_warm2 = np.array([170, 120, 70])
@@ -90,16 +92,17 @@ class Detection:
         )
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #Filters out noise
+
+        # Filters out noise
         valid_contours = [c for c in contours if cv2.contourArea(c) > 200]
 
         cv2.imshow("Warm Colors", mask)
         cv2.waitKey(1)
 
-        return valid_contours
+        return valid_contours, mask
 
     def process_contours(self, contours):
-        #Takes contours calculates angles,distances and sample captures when the target is in the center
+        # Takes contours calculates angles, distances and sample captures when the target is in the center
         camera_angle = self.camera_motor.getPositionSensor().getValue()
 
         for c in contours:
@@ -143,7 +146,8 @@ class Detection:
 
             human = self.humans[matched_id]
             human["last_x"] = cx
-            #Only stores humans once they are in the center
+
+            # Only stores humans once they are in the center
             if not human["angle_saved"] and abs(cx - self.image_center_x) <= 40:
                 human["angle_samples"].append(true_angle)
                 human["distance_samples"].append(distance)
@@ -161,7 +165,7 @@ class Detection:
                     human["angle_saved"] = True
 
     def handle_scan_completion(self):
-        #Checks whether the camera has gone 360 and if it does it stops the scan continues navigation and works out the goal coordaintes
+        # Checks whether the camera has gone 360 and if it does it stops the scan continues navigation and works out the goal coordinates
         if not self.scan_done:
             self.nav.pause()
 
@@ -214,7 +218,6 @@ class Detection:
         return coords
 
     def detect(self):
-        # Start spinning camera if scan not completed
         if self.start_angle is None:
             self.start_angle = self.camera_sensor.getValue()
     
@@ -226,9 +229,13 @@ class Detection:
         if frame is None:
             return []
 
-        contours = self.detect_warm_targets(frame)
+        contours, mask = self.detect_warm_targets(frame)
         self.process_contours(contours)
         self.handle_scan_completion()
-    
-        return []
 
+        if self.scan_done:
+            coverage = np.sum(mask > 0) / (self.image_width * self.image_height)
+            if coverage >= 0.15:
+                self.nav.goalreached = True
+
+        return []

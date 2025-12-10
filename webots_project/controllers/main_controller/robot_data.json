@@ -1,23 +1,32 @@
 {
-  "timestamp": 1765289559.2764597,
-  "update_count": 8,
+  "timestamp": 1765401765.7992017,
+  "update_count": 535,
   "robot": {
     "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "theta": 0.0,
-      "theta_degrees": 0.0
+      "x": 1.209,
+      "y": 0.316,
+      "theta": -0.22,
+      "theta_degrees": -12.6
     },
     "battery": 85,
-    "status": "GO_TO_GOAL",
+    "status": "WALL_FOLLOW",
     "velocity": 0,
-    "left_speed": 0.0,
-    "right_speed": 0.0
+    "left_speed": 1.4736265182495116,
+    "right_speed": 0.9263734817504882
   },
   "survivors": [],
   "mapping": {
     "status": "active",
     "map_size": "200x200"
   },
-  "past_coordinates": []
+  "past_coordinates": [
+    [
+      1.188034567321554,
+      -0.2728585012851972
+    ],
+    [
+      -0.8893743028751961,
+      1.5470205442587903
+    ]
+  ]
 }
