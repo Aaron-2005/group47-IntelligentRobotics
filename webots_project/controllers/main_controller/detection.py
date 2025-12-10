@@ -232,6 +232,12 @@ class Detection:
         contours, mask = self.detect_warm_targets(frame)
         self.process_contours(contours)
         self.handle_scan_completion()
+        if self.scan_done:
+            coverage = np.sum(mask > 0) / (self.image_width * self.image_height)
+            if coverage >= 0.15:
+                self.nav.goalreached = True
+
+        return []
 
         if self.scan_done:
             coverage = np.sum(mask > 0) / (self.image_width * self.image_height)

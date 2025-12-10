@@ -7,7 +7,7 @@ maximizedDockId: -1
 centralWidgetVisible: 1
 renderingMode: PLAIN
 orthographicViewHeight: 1
-textFiles: 5 "worlds/group47.wbt" "controllers/main_controller/navigation.py" "controllers/main_controller/detection.py" "controllers/main_controller/main_controller.py" "controllers/main_controller/launch_gui.py" "worlds/.group47.wbproj" "controllers/main_controller/mapping.py"
+textFiles: 2 "worlds/group47.wbt" "controllers/main_controller/navigation.py" "controllers/main_controller/detection.py" "controllers/main_controller/main_controller.py" "controllers/main_controller/launch_gui.py" ".group47.wbproj" "controllers/main_controller/mapping.py"
 consoles: Console:All:All
-renderingDevicePerspectives: TurtleBot3Burger:display;1;3.88;0;3.53996e-09
-renderingDevicePerspectives: TurtleBot3Burger:rgb_camera;1;0.682082;0.733577;0.00468384
+renderingDevicePerspectives: TurtleBot3Burger:display;1;4.15333;0;0.004
+renderingDevicePerspectives: TurtleBot3Burger:rgb_camera;1;0.433975;0.733577;0.00468384
