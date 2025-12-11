@@ -1,50 +1,65 @@
-\# Group 47 – Intelligent Robotics  
+README – Group 47 (Intelligent Robotics)
+Autonomous Disaster-Response Robot – Webots Simulation
+Team Members
 
-\### Disaster Response Robot (Webots Simulation)
+Abdulmajeed Alanazi – Localisation & Mapping
 
+Aaron Abraham – Survivor Detection
 
+Sebastian Andre – Navigation & Obstacle Avoidance
 
-\## Overview
+Jialun Wu – Communication System & User Interface
 
-An autonomous disaster-response robot that navigates hazardous environments, maps surroundings (SLAM), detects survivors via thermal vision, and sends real-time data to rescue teams.
+What We Implemented Ourselves
+Survivor Detection (Aaron)
 
+HSV colour segmentation (red survivor boxes)
 
+Contour extraction + filtering
 
-\## Team Members
+Angle estimation from pixel offsets
 
-\- \*\*Abdulmajeed Alanazi:\*\* Localization \& Mapping (SLAM)  
+Monocular distance estimation using camera geometry
 
-\- \*\*Aaron Abraham:\*\* Human Detection (Thermal Vision)  
+360° scanning + survivor tracking
 
-\- \*\*Sebastian Andre:\*\* Navigation \& Obstacle Avoidance  
+Global coordinate transformation + duplicate filtering
 
-\- \*\*Jialun Wu:\*\* Communication System \& User Interface  
+Navigation & Obstacle Avoidance (Sebastian)
 
+Odometry (encoder + IMU fusion)
 
+Proportional controller (goal-directed motion)
 
-\## Technologies
+Bug2 algorithm with wall-following
 
-\- \*\*Simulator:\*\* Webots  
+Lidar-based obstacle detection
 
-\- \*\*Language:\*\* Python  
+Localisation & Mapping (Abdulmajeed)
 
-\- \*\*Libraries:\*\* OpenCV, NumPy, WebSocket/socket, Tkinter or Flask (for UI)  
+Occupancy grid (log-odds representation)
 
+Lidar ray-tracing for free/occupied updates
 
+Multi-hit confirmation filtering
 
-\## Planned Features
+Simple scan-matching SLAM to reduce drift
 
-1\. Autonomous navigation through debris-filled environments  
+Communication & GUI (Jialun)
 
-2\. Real-time mapping with SLAM  
+JSON-based communication between robot and GUI
 
-3\. Thermal-based survivor detection  
+External Tkinter GUI
 
-4\. Low-latency communication to UI  
+Real-time plotting of robot pose & detected survivors
 
+Pre-Programmed Packages Used
 
+OpenCV (cv2)	-> Image masking, HSV conversion, contour detection
+NumPy	-> Mathematical calculations, vector operations
+Tkinter	-> GUI interface
+Matplotlib	-> Plotting robot + survivor positions
+JSON, threading, subprocess, os	-> File communication, async updates
+Webots API (Robot, Camera, Lidar, InertialUnit, PositionSensor, Display)	-> Reading sensors and controlling the robot
 
-\## Folder Structure
-
-
-
+All mapping, navigation, detection, and SLAM logic was programmed manually.
