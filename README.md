@@ -1,65 +1,61 @@
-README – Group 47 (Intelligent Robotics)
-Autonomous Disaster-Response Robot – Webots Simulation
-Team Members
+# Group 47 – Intelligent Robotics  
+## Autonomous Disaster Response Robot (Webots Simulation)
 
-Abdulmajeed Alanazi – Localisation & Mapping
+### Overview
+This project implements an autonomous disaster response robot in Webots that:
+- Navigates a cluttered environment
+- Builds a map of its surroundings (SLAM)
+- Detects survivors using colour based vision
+- Sends real-time state and detection data to an external GUI
 
-Aaron Abraham – Survivor Detection
+---
 
-Sebastian Andre – Navigation & Obstacle Avoidance
+### Team Members
 
-Jialun Wu – Communication System & User Interface
+- **Abdulmajeed Alanazi** – Localisation & Mapping (SLAM)  
+- **Aaron Abraham** – Survivor Detection  
+- **Sebastian Andre** – Navigation & Obstacle Avoidance  
+- **Jialun Wu** – Communication System & User Interface  
 
-What We Implemented Ourselves
-Survivor Detection (Aaron)
+---
 
-HSV colour segmentation (red survivor boxes)
+### What We Implemented Ourselves
 
-Contour extraction + filtering
+#### Survivor Detection (Aaron)
+- HSV colour segmentation to detect red survivor markers  
+- Contour extraction and filtering  
+- Angle estimation from pixel offsets  
+- Monocular distance estimation using camera geometry  
+- 360° camera scanning and survivor tracking  
+- Global coordinate transformation and duplicate filtering  
 
-Angle estimation from pixel offsets
+#### Navigation & Obstacle Avoidance (Sebastian)
+- Odometry using wheel encoders and IMU fusion  
+- Proportional controller for goal-directed motion  
+- Bug2 algorithm with wall-following behaviour  
+- Lidar-based obstacle detection and state switching  
 
-Monocular distance estimation using camera geometry
+#### Localisation & Mapping (Abdulmajeed)
+- Occupancy grid using log-odds representation  
+- Lidar ray-tracing to update free and occupied cells  
+- Multi-hit confirmation filtering for stable obstacle detection  
+- Lightweight scan-matching SLAM to reduce odometry drift  
 
-360° scanning + survivor tracking
+#### Communication & User Interface (Jialun)
+- JSON-based communication between Webots controller and external GUI  
+- External Tkinter-based GUI application  
+- Real-time plotting of robot pose, detected survivors, and visited locations  
 
-Global coordinate transformation + duplicate filtering
+---
 
-Navigation & Obstacle Avoidance (Sebastian)
+### Pre-Programmed Packages Used
 
-Odometry (encoder + IMU fusion)
+| Package / API | Purpose |
+| ------------- | ------- |
+| **OpenCV (cv2)** | HSV conversion, image masking, contour detection |
+| **NumPy** | Numerical operations, vector and matrix maths |
+| **Tkinter** | Desktop GUI framework |
+| **Matplotlib** | Plotting robot and survivor positions in the GUI |
+| **json, threading, subprocess, os** | File I/O, process management, asynchronous updates |
+| **Webots API** (`Robot`, `Camera`, `Lidar`, `InertialUnit`, `PositionSensor`, `Display`) | Access to simulator sensors and actuators |
 
-Proportional controller (goal-directed motion)
-
-Bug2 algorithm with wall-following
-
-Lidar-based obstacle detection
-
-Localisation & Mapping (Abdulmajeed)
-
-Occupancy grid (log-odds representation)
-
-Lidar ray-tracing for free/occupied updates
-
-Multi-hit confirmation filtering
-
-Simple scan-matching SLAM to reduce drift
-
-Communication & GUI (Jialun)
-
-JSON-based communication between robot and GUI
-
-External Tkinter GUI
-
-Real-time plotting of robot pose & detected survivors
-
-Pre-Programmed Packages Used
-
-OpenCV (cv2)	-> Image masking, HSV conversion, contour detection
-NumPy	-> Mathematical calculations, vector operations
-Tkinter	-> GUI interface
-Matplotlib	-> Plotting robot + survivor positions
-JSON, threading, subprocess, os	-> File communication, async updates
-Webots API (Robot, Camera, Lidar, InertialUnit, PositionSensor, Display)	-> Reading sensors and controlling the robot
-
-All mapping, navigation, detection, and SLAM logic was programmed manually.
